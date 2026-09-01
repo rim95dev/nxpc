@@ -22,6 +22,17 @@ import * as D from './donut';
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+/** For attribute values. The quote matters here — a label carrying one would end the attribute. */
+const escA = (s: string) => esc(s).replace(/"/g, '&quot;');
+
+/**
+ * Wallets behind a segment, packed into one attribute.
+ * Kept as JSON so the reader does not have to guess at a separator: labels are
+ * free text and any delimiter picked here would eventually appear inside one.
+ */
+const packWallets = (ws: SegWallet[] | undefined) =>
+  ws && ws.length ? ` data-wallets="${escA(JSON.stringify(ws))}"` : '';
+
 export interface ChartCtx {
   fmt: Fmt;
   t: Dict['chart'];
@@ -50,6 +61,7 @@ export interface PieSlice {
   subLabel?: string;
   tag?: string;
   tagKind?: 'yes' | 'no' | 'burn';
+  wallets?: SegWallet[];
 }
 
 /** Below this share the text does not fit inside the slice. Those slices are read only through the hover card. */
@@ -197,7 +209,8 @@ export function pie3d(slices: PieSlice[], o: ChartOpts): string {
       ` data-pct="${esc(fmt.pct(share))}" data-color="${esc(sl.color)}"` +
       (sl.sub ? ` data-sub="${esc(sl.sub)}"` : '') +
       (sl.subLabel ? ` data-sublabel="${esc(sl.subLabel)}"` : '') +
-      (sl.tag ? ` data-tag="${esc(sl.tag)}" data-tagkind="${esc(sl.tagKind ?? 'no')}"` : '');
+      (sl.tag ? ` data-tag="${esc(sl.tag)}" data-tagkind="${esc(sl.tagKind ?? 'no')}"` : '') +
+      packWallets(sl.wallets);
 
     const bits: string[] = [];
     const labelBits: string[] = [];
@@ -312,6 +325,13 @@ export function pie3d(slices: PieSlice[], o: ChartOpts): string {
 /* ------------------------------------------------------------------ *
  * Category bar — full width = total issued
  * ------------------------------------------------------------------ */
+/** One wallet row inside a hover card. `href` points at the explorer for the chain it lives on. */
+export interface SegWallet {
+  label: string;
+  address: string;
+  href: string;
+}
+
 export interface Segment {
   id: string;
   label: string;
@@ -324,6 +344,8 @@ export interface Segment {
   /** Hover card badge — a state such as included / excluded / burned. */
   tag?: string;
   tagKind?: 'yes' | 'no' | 'burn';
+  /** The wallets this segment adds up, each linked to the block explorer. */
+  wallets?: SegWallet[];
 }
 
 export function categoryBar(segments: Segment[], total: number, o: { fmt: Fmt; legend?: boolean }): string {
@@ -337,6 +359,7 @@ export function categoryBar(segments: Segment[], total: number, o: { fmt: Fmt; l
         (s.sub ? ` data-sub="${esc(s.sub)}"` : '') +
         (s.subLabel ? ` data-sublabel="${esc(s.subLabel)}"` : '') +
         (s.tag ? ` data-tag="${esc(s.tag)}" data-tagkind="${esc(s.tagKind ?? 'no')}"` : '') +
+        packWallets(s.wallets) +
         ` aria-label="${esc(s.label)} ${esc(fmt.full(s.value))} ${esc(fmt.pct(s.value / total))}"></button>`,
     )
     .join('');
@@ -350,6 +373,7 @@ export function categoryBar(segments: Segment[], total: number, o: { fmt: Fmt; l
         (s.sub ? ` data-sub="${esc(s.sub)}"` : '') +
         (s.subLabel ? ` data-sublabel="${esc(s.subLabel)}"` : '') +
         (s.tag ? ` data-tag="${esc(s.tag)}" data-tagkind="${esc(s.tagKind ?? 'no')}"` : '') +
+        packWallets(s.wallets) +
         `><span class="sw" style="background:${s.color}"></span><span class="lg-label">${esc(s.label)}</span><span class="lg-val mono">${esc(fmt.compact(s.value))}</span><span class="lg-pct mono">${esc(fmt.pct(s.value / total))}</span></li>`,
     )
     .join('');

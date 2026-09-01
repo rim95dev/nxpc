@@ -238,7 +238,7 @@ const explorer = henesys.blockExplorers.default.url;
   /* ---------- Category bar hover ---------- */
   document
     .querySelectorAll<HTMLElement>('.addr-catbar')
-    .forEach((h) => attachSegCard(h, { ofTotal: T.seg.ofTotal, holder: T.seg.holder, status: T.seg.status }));
+    .forEach((h) => attachSegCard(h, { ofTotal: T.seg.ofTotal, holder: T.seg.holder, status: T.seg.status, addresses: T.seg.addresses }));
 
   /* ---------- Filter · sort ---------- */
   const body = document.getElementById('addrBody') as HTMLTableSectionElement | null;

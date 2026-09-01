@@ -9,6 +9,12 @@
  * On touch, a tap opens it and a tap outside closes it.
  */
 
+interface Wallet {
+  label: string;
+  address: string;
+  href: string;
+}
+
 interface Detail {
   label: string;
   value: string;
@@ -19,7 +25,21 @@ interface Detail {
   tag?: string;
   tagKind?: string;
   minus?: boolean;
+  wallets?: Wallet[];
 }
+
+/** Rows written by the server. A malformed attribute drops the list rather than the card. */
+const parseWallets = (raw: string | undefined): Wallet[] => {
+  if (!raw) return [];
+  try {
+    const v = JSON.parse(raw);
+    return Array.isArray(v) ? v.filter((w) => w && w.address && w.href) : [];
+  } catch {
+    return [];
+  }
+};
+
+const short = (a: string) => (a.length < 12 ? a : `${a.slice(0, 6)}…${a.slice(-4)}`);
 
 const read = (el: HTMLElement | SVGElement): Detail | null => {
   const d = (el as HTMLElement).dataset;
@@ -33,6 +53,7 @@ const read = (el: HTMLElement | SVGElement): Detail | null => {
     ...(d.sublabel ? { subLabel: d.sublabel } : {}),
     ...(d.tag ? { tag: d.tag, tagKind: d.tagkind ?? 'no' } : {}),
     ...(d.minus ? { minus: true } : {}),
+    wallets: parseWallets(d.wallets),
   };
 };
 
@@ -43,6 +64,8 @@ export interface SegCardLabels {
   ofTotal: string;
   holder: string;
   status: string;
+  /** Heading above the address list. */
+  addresses: string;
 }
 
 /**
@@ -64,17 +87,30 @@ export function attachSegCard(host: HTMLElement, labels: SegCardLabels): () => v
   host.appendChild(card);
 
   let active: HTMLElement | null = null;
+  /* The card holds links now, so it cannot vanish the moment the pointer leaves the
+     segment — the gap between the two would be impossible to cross. Closing is
+     deferred just long enough to reach the card, and cancelled if the pointer lands
+     on it. */
+  let closing = 0;
 
-  const hide = () => {
+  const hideNow = () => {
     card.removeAttribute('data-open');
     active?.classList.remove('is-active');
     active?.removeAttribute('aria-describedby');
     active = null;
   };
+  const hide = () => {
+    clearTimeout(closing);
+    closing = window.setTimeout(hideNow, 160);
+  };
+  const keep = () => clearTimeout(closing);
+  card.addEventListener('mouseenter', keep);
+  card.addEventListener('mouseleave', hide);
 
   const show = (el: HTMLElement, clientX: number, clientY: number) => {
     const d = read(el);
     if (!d) return;
+    clearTimeout(closing);
 
     if (active !== el) {
       active?.classList.remove('is-active');
@@ -87,7 +123,21 @@ export function attachSegCard(host: HTMLElement, labels: SegCardLabels): () => v
         `<div class="seg-card-val">${d.minus ? '−' : ''}${esc(d.value)}</div>` +
         (d.pct ? `<div class="seg-card-row"><span>${esc(labels.ofTotal)}</span><b>${esc(d.pct)}</b></div>` : '') +
         (d.sub ? `<div class="seg-card-row"><span>${esc(d.subLabel ?? labels.holder)}</span><b>${esc(d.sub)}</b></div>` : '') +
-        (d.tag ? `<span class="tag tag-${d.tagKind === 'yes' ? 'yes' : d.tagKind === 'burn' ? 'burn' : 'no'}">${esc(d.tag)}</span>` : '');
+        (d.tag ? `<span class="tag tag-${d.tagKind === 'yes' ? 'yes' : d.tagKind === 'burn' ? 'burn' : 'no'}">${esc(d.tag)}</span>` : '') +
+        /* The addresses are the point of the page — a reader who does not trust the
+           number should be one click from the explorer that produced it. */
+        (d.wallets && d.wallets.length
+          ? `<div class="seg-card-addrs"><div class="seg-card-addrs-h">${esc(labels.addresses)}</div>` +
+            d.wallets
+              .map(
+                (w) =>
+                  `<a class="seg-addr" href="${esc(w.href)}" target="_blank" rel="noopener noreferrer">` +
+                  `<span class="seg-addr-name">${esc(w.label)}</span>` +
+                  `<span class="seg-addr-hex mono">${esc(short(w.address))}</span></a>`,
+              )
+              .join('') +
+            `</div>`
+          : '');
     }
 
     card.setAttribute('data-open', '');
@@ -115,6 +165,15 @@ export function attachSegCard(host: HTMLElement, labels: SegCardLabels): () => v
   };
   const onFocus = (ev: Event) => {
     const el = ev.currentTarget as HTMLElement;
+    /* Clicking focuses the segment the pointer is already on. Re-placing the card from
+       the segment's bounding box would jerk it away from the cursor — a wedge's box is
+       far wider than the wedge. An open card for this same target keeps its place, so a
+       click just pins it where it already is, which is what makes the address links
+       reachable. Keyboard focus arrives with no card open and does use the box. */
+    if (active === el && card.hasAttribute('data-open')) {
+      clearTimeout(closing);
+      return;
+    }
     const b = el.getBoundingClientRect();
     show(el, b.left + b.width / 2, b.top);
   };
@@ -136,7 +195,7 @@ export function attachSegCard(host: HTMLElement, labels: SegCardLabels): () => v
   document.addEventListener('touchstart', (ev) => {
     if (!host.contains(ev.target as Node)) hide();
   }, { passive: true });
-  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') hide(); });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') hideNow(); });
 
   return () => {
     for (const el of targets) {

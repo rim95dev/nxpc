@@ -8,9 +8,11 @@
 #   burn      Burned, unrecoverable
 #   locked    Locked, undistributed reserve (contribution rewards)
 #   team      Team and advisor vesting
-#   fusion    NXPC Valhalla — reserve that comes in via Fission and goes out via Fusion
+#   fusion    NXPC Valhalla — reserve that comes in via Fission and goes out via Fusion.
+#             Counted as circulating: nothing holds it there. Listed as its own tier
+#             so its size stays visible inside the circulating figure.
 #   ↑ Everything down to here is an official deduction in Confluence «Token circulating supply policy».
-#     circulating = total issued − burned − contribution reward balance − locked supply − Valhalla balance
+#     circulating = total issued − burned − contribution reward balance − locked supply
 #
 #   bridge    Bridge lock. It exists as a wrapped token on another chain, so not deducting it double-counts
 #   treasury  Company holdings, revenue and fees
@@ -22,7 +24,7 @@
 # strictCirculating
 #   Whether it counts as circulating under the «issuer control basis». No default is set.
 #   Circulating under the «policy basis» is decided by tier, not by this field — the policy
-#   deducts only four, burn·locked·team·fusion, while treasury·ecosystem·ops·bridge·wrapper
+#   deducts only burn·locked·team, while fusion·treasury·ecosystem·ops·bridge·wrapper
 #   are included in circulating supply because the Confluence asset flow table says they «can be circulated at any time».
 # share        Used when one address is split into shares (wrapper). Defaults to 1.
 # static       An aggregate entry whose address is not published. Not read on-chain; the source is recorded instead.

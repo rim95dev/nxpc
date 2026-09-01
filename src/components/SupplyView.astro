@@ -6,7 +6,7 @@ import { localizeChains } from '../lib/chains';
 import { lastDays } from '../lib/window';
 import { domainOf } from '../lib/trend';
 import type { TierItem } from '../lib/model';
-import { RPC_URL, henesys } from '../lib/chain';
+import { RPC_URL, explorerAddress, henesys } from '../lib/chain';
 import { areaChart, categoryBar, pie3d, sparkline, type PieSlice, type Segment } from '../lib/charts';
 import { createFmt } from '../lib/format';
 import { dict, type Lang } from '../i18n';
@@ -64,8 +64,8 @@ const TIER_COLOR: Record<string, string> = {
   burn: 'var(--c-burn)',
   locked: 'var(--lock-1)',
   team: 'var(--lock-4)',
-  fusion: 'var(--lock-2)',
   // Circulating composition
+  fusion: 'var(--purple-2)',
   bridge: 'var(--blue)',
   treasury: 'var(--purple)',
   wrapper: 'var(--mint-2)',
@@ -83,6 +83,19 @@ const rollOf = (tier: Tier) => s.rolls.find((r) => r.tier === tier)!;
 const itemsOf = (tier: Tier) =>
   rollOf(tier).items.map((i) => labelOf.get(i.id) ?? i.id).join(' · ');
 
+/* Addresses behind a deduction step, for the hover card. Entries carried over from a
+   document have no address to link, so they drop out rather than render a dead row. */
+const addrOf = new Map(wallets.filter((w) => w.address).map((w) => [w.id, w.address!]));
+const walletsOf = (ids: string[]) =>
+  ids
+    .filter((id) => addrOf.has(id))
+    .map((id) => ({
+      label: labelOf.get(id) ?? id,
+      address: addrOf.get(id)!,
+      href: explorerAddress(addrOf.get(id)!),
+    }));
+const tierWallets = (tier: Tier) => walletsOf(rollOf(tier).items.map((i) => i.id));
+
 const segments: Segment[] = [
   ...DEDUCTIONS.map((tier): Segment => ({
     id: tier,
@@ -95,6 +108,7 @@ const segments: Segment[] = [
       ? t.table.tagBurned
       : isPolicyDeduction(tier) ? t.table.tagExcluded : t.table.tagCounted,
     tagKind: tier === 'burn' ? 'burn' : isPolicyDeduction(tier) ? 'no' : 'yes',
+    wallets: tierWallets(tier),
   })),
   {
     id: 'strict',
@@ -105,6 +119,7 @@ const segments: Segment[] = [
     subLabel: t.seg.attributed,
     tag: t.table.tagCounted,
     tagKind: 'yes',
+    wallets: walletsOf(s.attributed.map((a) => a.id)),
   },
 ];
 
@@ -119,6 +134,7 @@ const chainSegments: Segment[] = [
     id: 'chain-henesys', label: 'Henesys', value: s.strictHenesys, color: 'var(--c-circ)',
     sub: s.attributed.map((a) => labelOf.get(a.id) ?? a.id).join(' · '),
     subLabel: t.seg.attributed, tag: t.table.tagCounted, tagKind: 'yes',
+    wallets: walletsOf(s.attributed.map((a) => a.id)),
   },
 ];
 
@@ -692,7 +708,7 @@ const seriesJson = JSON.stringify(data.series.points);
   /* ---------- Color segment hover card ----------
      The cylinder bar, the legend and the waterfall bars use the same data-* contract,
      so one function attaches to all of them. */
-  const segLabels = { ofTotal: T.seg.ofTotal, holder: T.seg.holder, status: T.seg.status };
+  const segLabels = { ofTotal: T.seg.ofTotal, holder: T.seg.holder, status: T.seg.status, addresses: T.seg.addresses };
   document
     .querySelectorAll<HTMLElement>('.catbar-host, .pie-wrap')
     // In the circulating-only view the denominator is circulating supply, not total issued — the card's row name follows.

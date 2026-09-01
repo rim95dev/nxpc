@@ -27,8 +27,17 @@ export const TIERS = [
 ] as const;
 export type Tier = (typeof TIERS)[number];
 
-/** Items deducted down to the policy-basis circulating supply — the Confluence formula stops here. */
-export const POLICY_TIERS: Tier[] = ['burn', 'locked', 'team', 'fusion'];
+/**
+ * Items deducted down to the policy-basis circulating supply — the Confluence
+ * formula stops here.
+ *
+ * The Fusion reserve (NXPCRecycleVault) is **not** here. NXPC sitting in the vault
+ * is circulating: it went in through Fission and comes back out through Fusion,
+ * and nothing stops it. Deducting it would put this page ~90M below the figure
+ * MSU Explorer publishes, which is the number people compare against.
+ * The stricter figure still removes it — see strictCirculating on those entries.
+ */
+export const POLICY_TIERS: Tier[] = ['burn', 'locked', 'team'];
 
 const WalletSchema = z
   .object({

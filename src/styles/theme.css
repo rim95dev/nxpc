@@ -32,6 +32,8 @@
   /* The supply breakdown has six slots, so four colors are not enough. Two deeper variants, same families. */
   --mint-2: #12c98a;
   --blue-2: #3f74d9;
+  /* Sixth circulating hue — the Fusion reserve needed one once it stopped being a deduction. */
+  --purple-2: #8f2fd4;
 
   --c-circ:   var(--mint);
   --c-bridge: var(--blue);
@@ -144,6 +146,7 @@
   --purple: #ac58d8;
   --mint-2: #3a9f79;
   --blue-2: #52709f;
+  --purple-2: #8447ad;
 
   --c-locked: #8b9591;
   --c-burn:   #5f6a66;
@@ -907,11 +910,31 @@ table.mini td.mono { font-size: 11.5px; }
   background: var(--surface-2);
   border: 1px solid var(--rule-2);
   box-shadow: var(--tip-shadow);
+  /* The card carries explorer links, so it has to take the pointer. It only does so
+     while open — a closed card sitting over the chart would swallow hovers. */
   pointer-events: none;
   opacity: 0; transform: translateY(4px);
   transition: opacity .13s ease, transform .13s ease;
 }
-.seg-card[data-open] { opacity: 1; transform: translateY(0); }
+.seg-card[data-open] { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+.seg-card-addrs { margin-top: 9px; border-top: 1px solid var(--rule); padding-top: 8px; }
+.seg-card-addrs-h {
+  font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink-3); margin-bottom: 5px;
+}
+.seg-addr {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  padding: 3px 0; font-size: 12px; color: var(--ink-2); text-decoration: none;
+}
+.seg-addr:hover { color: var(--ink); text-decoration: none; }
+.seg-addr:hover .seg-addr-hex { border-bottom-color: currentColor; }
+.seg-addr:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.seg-addr-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seg-addr-hex {
+  flex: none; font-size: 11.5px; color: var(--c-circ-ink);
+  border-bottom: 1px solid transparent;
+}
 .seg-card-head {
   display: flex; align-items: center; gap: 8px;
   font-size: 13.5px; color: var(--ink); font-weight: 500;
@@ -1140,9 +1163,23 @@ table.mini td.mono { font-size: 11.5px; }
 }
 /* On hover the slice pulls out slightly along its bisector */
 .pie-slice:hover,
+.pie-slice:focus-visible,
 .pie-slice.is-active,
 .pie-slice.is-paired { transform: translate(var(--ex-x), var(--ex-y)); filter: brightness(1.08); }
-.pie-slice:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* An outline on an SVG group is drawn around its bounding box, so a wedge gets a
+   rectangle that has nothing to do with its shape. Chrome paints its own on a
+   focusable <g> even for a mouse click, where :focus-visible does not match — hence
+   killing it on :focus, not on :focus-visible.
+   Keyboard focus is shown instead by stacked drop-shadows, which follow the alpha
+   silhouette, plus the same pull-out and hover card a pointer gets. */
+.pie-slice:focus { outline: none; }
+.pie-slice:focus-visible {
+  filter: brightness(1.08)
+    drop-shadow(2px 0 0 var(--ink)) drop-shadow(-2px 0 0 var(--ink))
+    drop-shadow(0 2px 0 var(--ink)) drop-shadow(0 -2px 0 var(--ink));
+}
+.pie-slice:focus-visible .pie-cap { opacity: 1; }
 
 /* The cut faces — while the ring is closed they have to hide between neighboring
    slices. Revealing them only when a slice pulls out shows the thickness while keeping
@@ -1154,6 +1191,11 @@ table.mini td.mono { font-size: 11.5px; }
 .pie-socket.is-paired { opacity: 1; }
 /* A slice absent from this view — it keeps its place but takes no pointer events */
 .pie-slice[data-empty] { pointer-events: none; }
+
+/* The labels ride on their own layer above the slices. Left hittable, moving the
+   pointer onto the digits takes it off the wedge, so the hover card closes just as
+   the reader goes to look at the number. The layer passes the pointer through. */
+.pie-label-g { pointer-events: none; }
 
 /* Paint the slices opaque and the same gray floats up as silver in dark. Damp it per theme. */
 .donut-wash { fill: var(--donut-wash); }

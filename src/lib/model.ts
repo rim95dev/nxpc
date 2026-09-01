@@ -28,10 +28,9 @@ export interface SupplyModel {
   /** Aggregate per deduction step. Follows the TIERS order. */
   rolls: TierRoll[];
   /**
-   * Circulating supply on the policy basis: total issued minus the four tiers
-   * POLICY_TIERS names — burn, locked, team, fusion. Those are the deductions
-   * the Confluence «Token circulating supply policy» defines (contribution
-   * reward balance and vesting both land in locked/team; fusion is Valhalla).
+   * Circulating supply on the policy basis: total issued minus the tiers
+   * POLICY_TIERS names — burn, locked, team. The Fusion reserve is deliberately
+   * not among them; see the note on POLICY_TIERS.
    * This is the disclosed figure, so the headline uses it.
    */
   circulating: number;
@@ -49,7 +48,7 @@ export interface SupplyModel {
   /** The part of the policy-basis circulating supply that stays on Henesys (what is left after the bridge lock). */
   onL1: number;
   burned: number;
-  /** The policy deductions minus burn (locked + vesting + Fusion funds). */
+  /** The policy deductions minus burn (reward pool + vesting). */
   nonCirculating: number;
   bridged: number;
   balances: Record<string, number>;
@@ -106,7 +105,10 @@ export function fold(balances: Record<string, number>): SupplyModel {
       ...(w.share !== undefined ? { share: w.share } : {}),
       fromDoc: w.static !== undefined,
     })),
-    buckets: (['locked', 'team', 'fusion'] as Tier[])
+    /* Derived from POLICY_TIERS rather than listed by hand — a tier that stops being
+       a deduction has to leave this breakdown at the same time, or the non-circulating
+       split adds up to more than the non-circulating total. */
+    buckets: POLICY_TIERS.filter((t) => t !== 'burn')
       .map((t) => ({ id: t, value: valueOf(t) }))
       .filter((b) => b.value > 0),
     onL1: circulating - valueOf('bridge'),

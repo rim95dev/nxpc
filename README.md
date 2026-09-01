@@ -148,6 +148,13 @@ neighbouring hues. Hovering either side lights up the other and pushes the slice
 out. Each row carries a share bar under the value, so the ordering is readable
 without reading the numbers.
 
+**Addresses are one click from the number.** Every hover card lists the wallets
+its segment adds up, each linking to that address on
+[Snowtrace](https://68414.snowtrace.io). Snowtrace runs a per-chain instance for
+Avalanche L1s and `68414` is Henesys — the bare `snowtrace.io` is C-Chain and does
+not resolve these addresses. The card takes the pointer while open and closes on a
+short delay, so the gap between segment and card can be crossed.
+
 **Segment hover cards.** A colour with no label says nothing. The category bar,
 the legend and the donut all use the same `data-*` contract (`data-label`,
 `data-value`, `data-pct`, `data-sub`, `data-tag`), and one function in
@@ -285,6 +292,10 @@ Git history                   ← the time-series database
 | Present | Weekly cron, Thursday 00:00 UTC | GitHub Actions |
 | Future | `src/data/snapshots/*.json` | the same cron |
 
+Only the weekly run adds a point. The three-hourly run rebuilds the page and
+stores nothing — collecting eight points a day would bury the trend in noise
+without telling anyone anything the weekly grid does not.
+
 **Both sources store inputs and derive circulating supply.** Letting a file
 state circulating supply directly allows it to disagree with the equation at the
 top of the page, and then the graph lies. Past and present run through the same
@@ -391,8 +402,11 @@ deployed.
 
 Two fields decide how a wallet is counted, and they are not the same thing:
 
-- `tier` decides the **policy** figure. Four tiers are subtracted —
-  `burn`, `locked`, `team`, `fusion` — matching the published policy.
+- `tier` decides the **policy** figure. Three tiers are subtracted —
+  `burn`, `locked`, `team`. The Fusion reserve (NXPCRecycleVault) is **not**
+  deducted: NXPC enters it through Fission and leaves through Fusion, nothing
+  holds it there, and deducting it would put this page ~90M below the figure
+  MSU Explorer publishes.
 - `strictCirculating` decides the **stricter** figure, which additionally
   removes anything still under issuer control. It has no default, so every entry
   has to state it.
@@ -439,8 +453,17 @@ item. Asking an ERC-721 for `decimals()` fails that item only.
 |---|---|
 | push to `main` | rebuild and deploy |
 | `0 0 * * 4` (Thursday) | add a point to the series, then rebuild |
-| `0 0 * * *` (daily) | rebuild only — keeps the current numbers from going STALE |
+| `20 */3 * * *` (every 3h) | rebuild only — caps how stale the current numbers get |
 | manual dispatch | rebuild, with snapshot collection as an input |
+
+**The current figures are baked, not live.** The browser makes one
+`eth_blockNumber` call to compare against the block the page was built at, and
+shows FRESH or STALE — it never re-reads balances. So the numbers on screen are
+exactly as old as the last build, which is why the rebuild cron runs every three
+hours rather than daily.
+
+The frequent cron runs at minute 20: schedules on the hour queue behind everyone
+else's, and 00:00 already belongs to the weekly snapshot run.
 
 Thursday is not arbitrary: the backfilled grid runs on Thursdays, so continuing
 on the same weekday keeps the spacing even.

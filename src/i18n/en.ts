@@ -41,6 +41,7 @@ export const en = {
 
   seg: {
     items: 'Includes',
+    addresses: 'Addresses',
     attributed: 'Known holders',
     chainNote: 'Route',
     fromDoc: 'doc',
@@ -117,7 +118,7 @@ export const en = {
 
   tier: {
     burn: 'Burned',
-    locked: 'Locked · rewards pool',
+    locked: 'Reward pool · undistributed',
     team: 'Vesting · team & advisors',
     fusion: 'Fusion reserve',
     bridge: 'Bridge locked',
@@ -132,7 +133,7 @@ export const en = {
     freeFloat: 'Free float',
     maxSupply: 'Max supply',
     burned: 'Burned',
-    nonCirculating: 'Locked',
+    nonCirculating: 'Non-circulating',
     circulating: 'Circulating supply',
   },
 
@@ -154,13 +155,13 @@ export const en = {
 
   chart: {
     totalIssuedLine: 'Max supply',
-    gapLabel: 'Locked',
+    gapLabel: 'Non-circulating',
     clamped: '<1%, enlarged',
     handoverRight: 'daily →',
     handoverLeft: '← daily',
     legendCirculating: 'Circulating',
     legendCap: 'Max supply',
-    legendGap: 'Locked',
+    legendGap: 'Non-circulating',
     uploaded: 'Uploaded',
     daily: 'Daily',
     days: 'd',

@@ -9,9 +9,12 @@ on:
     # Why Thursday: the grid the backfill produced (2025-05-15 ~ 2026-08-27) is on
     # Thursdays, so it has to continue on the same weekday for the spacing to stay even.
     - cron: '0 0 * * 4'
-    # Every day 00:00 UTC — rebakes only the «current» numbers on the screen. No snapshot is recorded.
-    # Without this, last week's numbers hang there for the whole week and the page shows up as STALE.
-    - cron: '0 0 * * *'
+    # Every 3 hours — rebakes only the «current» numbers on the screen. No snapshot is recorded.
+    # The figures are baked at build time, so without this the page carries the last
+    # build's numbers until the next one. Three hours caps how stale they can get.
+    # Minute 20, not 0: on-the-hour schedules queue behind everyone else's, and the
+    # weekly snapshot run already owns 00:00.
+    - cron: '20 */3 * * *'
 
   workflow_dispatch:
     inputs:
