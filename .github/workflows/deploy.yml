@@ -1,0 +1,90 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+  schedule:
+    # Every Thursday 00:00 UTC — adds one point to the time series.
+    # Why Thursday: the grid the backfill produced (2025-05-15 ~ 2026-08-27) is on
+    # Thursdays, so it has to continue on the same weekday for the spacing to stay even.
+    - cron: '0 0 * * 4'
+    # Every day 00:00 UTC — rebakes only the «current» numbers on the screen. No snapshot is recorded.
+    # Without this, last week's numbers hang there for the whole week and the page shows up as STALE.
+    - cron: '0 0 * * *'
+
+  workflow_dispatch:
+    inputs:
+      collect:
+        description: 'Whether to record a snapshot (adds a point to the time series)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write   # needed to commit the snapshot archive
+  pages: write
+  id-token: write
+
+# Deploys must not overlap. Let the in-flight one finish and queue the new one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      # --ignore-scripts: stops dependencies from running postinstall (npm supply chain defense)
+      - name: Install
+        run: npm ci --ignore-scripts
+
+      # First check that the accumulated snapshots match the current registry.
+      # Add or change a wallet and leave the old snapshots as they are, and circulating supply jumps on those dates only.
+      - name: Audit archive
+        run: npm run collect -- --audit
+
+      # A time series point is added once a week (Thursday) only. The daily cron skips this.
+      # If validation catches something it writes nothing and fails, so a strange number
+      # never gets into the archive quietly.
+      - name: Collect snapshot
+        if: >-
+          github.event.schedule == '0 0 * * 4' ||
+          (github.event_name == 'workflow_dispatch' && inputs.collect)
+        run: npm run collect
+
+      # The build only reads — it bakes the current numbers into the HTML and redraws the time series.
+      - name: Build
+        run: npm run build
+
+      - name: Commit snapshot
+        run: |
+          if [ -n "$(git status --porcelain src/data/snapshots)" ]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add src/data/snapshots
+            git commit -m "chore: supply snapshot $(date -u +%Y-%m-%d)"
+            git push
+          else
+            echo "No snapshot changes"
+          fi
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

@@ -1,0 +1,310 @@
+---
+import Site from '../layouts/Site.astro';
+import { ADDRESSES, ADDRESSES_ARE_PLACEHOLDER, localizeAddresses, type TokenInfo } from '../lib/addresses';
+import { readAddresses, readHead, type Head } from '../lib/reads';
+import { RPC_URL, henesys } from '../lib/chain';
+import { categoryBar, type Segment } from '../lib/charts';
+import { createFmt } from '../lib/format';
+import { dict, type Lang } from '../i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+const t = dict(lang);
+const F = createFmt(lang);
+
+/* Read everything in one shot with Multicall3 at build time.
+   Native balances and ERC-20/721 metadata go out as a single batch. */
+let balances: Record<string, number | null> = {};
+let tokens: Record<string, TokenInfo> = {};
+let failures: string[] = [];
+let head: Head = { chainId: henesys.id, blockNumber: 0, timestamp: 0 };
+let rpcError: string | null = null;
+const takenAt = Date.now();
+
+try {
+  const [read, headRead] = await Promise.all([readAddresses(ADDRESSES), readHead()]);
+  balances = read.balances;
+  tokens = read.tokens;
+  failures = read.failures;
+  head = headRead;
+} catch (err) {
+  rpcError = err instanceof Error ? err.message : String(err);
+}
+
+// In placeholder mode the on-chain values mean nothing, so fill them from balanceHint.
+if (ADDRESSES_ARE_PLACEHOLDER) {
+  balances = Object.fromEntries(
+    ADDRESSES.map((a) => [a.id, a.chain === 'henesys' ? (a.balanceHint ?? 0) : null]),
+  );
+  tokens = {};
+  failures = [];
+}
+
+// Sort by balance descending on the server — the pressed sort chip and the static HTML must not disagree.
+const rows = localizeAddresses(lang, balances, tokens)
+  .sort((a, b) => (b.balance ?? -1) - (a.balance ?? -1));
+
+/* Hold-only categories (vault · treasury · ops) get the grey family; the rest use the four MSU colors. */
+const CAT_COLOR: Record<string, string> = {
+  bridge: 'var(--c-bridge)',
+  vault: 'var(--lock-1)',
+  treasury: 'var(--lock-2)',
+  ops: 'var(--lock-4)',
+  token: 'var(--pink)',
+  infra: 'var(--purple)',
+};
+const CAT_LABEL: Record<string, string> = t.addr.cat;
+
+// null means "not read", so it drops out of the total — counting it as 0 makes the total lie.
+const readRows = rows.filter((r) => r.balance !== null);
+const unread = rows.length - readRows.length;
+const held = readRows.reduce((n, r) => n + (r.balance ?? 0), 0);
+const contracts = rows.filter((r) => r.type === 'contract').length;
+const eoas = rows.length - contracts;
+
+// Holdings per category as a single cylinder bar. The distribution shows up before you read the table.
+const byCat = new Map<string, number>();
+for (const r of rows) byCat.set(r.category, (byCat.get(r.category) ?? 0) + (r.balance ?? 0));
+const catSegments: Segment[] = [...byCat.entries()]
+  .filter(([, v]) => v > 0)
+  .sort((a, b) => b[1] - a[1])
+  .map(([cat, v]) => ({
+    id: cat,
+    label: CAT_LABEL[cat] ?? cat,
+    value: v,
+    color: CAT_COLOR[cat] ?? 'var(--ink-3)',
+    sub: `${rows.filter((r) => r.category === cat).length}`,
+    subLabel: t.addr.perCat,
+  }));
+
+const tiles = [
+  {
+    k: t.addr.totalHeld, v: F.full(held),
+    sub: unread > 0 ? `${t.hero.unit} · ${unread} ${t.addr.notRead}` : t.hero.unit,
+    color: 'var(--c-circ)',
+  },
+  { k: t.addr.countLabel, v: String(rows.length), sub: '', color: 'var(--ink-2)' },
+  { k: t.addr.contracts, v: String(contracts), sub: '', color: 'var(--c-bridge)' },
+  { k: t.addr.eoas, v: String(eoas), sub: '', color: 'var(--purple)' },
+];
+
+const explorer = henesys.blockExplorers.default.url;
+---
+
+<Site lang={lang} page="addresses" head={head} takenAt={takenAt} rpcError={rpcError} title={`${t.addr.title} — ${t.brand}`} description={t.addr.description}>
+
+  <Fragment slot="notice">
+    {ADDRESSES_ARE_PLACEHOLDER && (
+      <div class="notice" role="note">
+        <b>{t.notice.badge}</b>
+        <span class="mono">addresses.yaml</span>
+      </div>
+    )}
+  </Fragment>
+
+  <section class="band">
+    <div class="wrap">
+      <div class="sec-head"><h2>{t.addr.title}</h2></div>
+
+      <div class="tiles">
+        {tiles.map((x) => (
+          <div class="tile" style={`--tile-accent:${x.color}`}>
+            <div class="tile-k">{x.k}</div>
+            <div class="tile-v mono">{x.v}</div>
+            <div class="tile-s mono">{x.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {catSegments.length > 0 && (
+        <div class="catbar-host addr-catbar" set:html={categoryBar(catSegments, held, { fmt: F })} />
+      )}
+
+      {failures.length > 0 && (
+        <p class="warn mono">{t.table.readFailed}: {failures.slice(0, 8).join(', ')}</p>
+      )}
+    </div>
+  </section>
+
+  <section class="band band-alt" id="list">
+    <div class="wrap">
+      <div class="sec-head sec-head-row">
+        <h2>{t.nav.addresses}</h2>
+        <div class="control-row">
+          <div id="addrType" class="chips" role="group" aria-label={t.addr.colType}>
+            <button data-type="all" aria-pressed="true">{t.addr.filterAll}</button>
+            <button data-type="contract" aria-pressed="false">{t.addr.filterContract}</button>
+            <button data-type="eoa" aria-pressed="false">{t.addr.filterEoa}</button>
+          </div>
+          <div id="addrSort" class="chips" role="group" aria-label={t.addr.sortBalance}>
+            <button data-sort="balance" aria-pressed="true">↓ {t.addr.sortBalance}</button>
+            <button data-sort="label" aria-pressed="false">↓ {t.addr.sortLabel}</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table class="wallets addresses">
+          <thead>
+            <tr>
+              <th>{t.addr.colLabel}</th>
+              <th>{t.addr.colOwner}</th>
+              <th>{t.addr.colType}</th>
+              <th>{t.addr.colChain}</th>
+              <th>{t.addr.colAddress}</th>
+              <th class="num">{t.addr.colBalance}</th>
+              <th>{t.addr.colToken}</th>
+            </tr>
+          </thead>
+          <tbody id="addrBody">
+            {rows.map((r) => (
+              <tr
+                data-type={r.type}
+                data-balance={r.balance ?? -1}
+                data-name={r.label.toLowerCase()}
+              >
+                <td data-cell="title" data-label={t.addr.colLabel}>
+                  <span class="wg" style={`background:${CAT_COLOR[r.category]}`}></span>{r.label}
+                  <span class="cat-chip">{CAT_LABEL[r.category]}</span>
+                </td>
+                <td class="w-holder" data-label={t.addr.colOwner}>{r.owner}</td>
+                <td data-label={t.addr.colType}>
+                  <span class={`tag ${r.type === 'contract' ? 'tag-ct' : 'tag-eoa'}`}>
+                    {r.type === 'contract' ? t.addr.typeContract : t.addr.typeEoa}
+                  </span>
+                </td>
+                <td class="mono chain-cell" data-label={t.addr.colChain}>{r.chain}</td>
+                <td class="mono w-addr" data-label={t.addr.colAddress}>
+                  <span class="addr-wrap">
+                    {r.chain === 'henesys' ? (
+                      <a href={`${explorer}/accounts/${r.address}`} target="_blank" rel="noopener">{F.addr(r.address)}</a>
+                    ) : (
+                      <span>{F.addr(r.address)}</span>
+                    )}
+                    <button class="copy-btn" type="button" data-copy={r.address} title={t.addr.copy} aria-label={`${t.addr.copy} ${r.label}`}>⧉</button>
+                  </span>
+                </td>
+                <td class="mono num" data-label={t.addr.colBalance}>
+                  {r.balance === null
+                    ? <span class="ph" title={t.addr.notReadWhy}>{t.addr.notRead}</span>
+                    : F.full(r.balance)}
+                </td>
+                <td class="mono token-cell" data-label={t.addr.colToken}>
+                  {r.standard ? (
+                    <>
+                      <span class="tag tag-std">{r.standard}</span>
+                      {r.token?.symbol && <span class="tk-sym">{r.token.symbol}</span>}
+                      {r.token?.totalSupply !== undefined && (
+                        <span class="tk-sup dim">{F.compact(r.token.totalSupply)}</span>
+                      )}
+                    </>
+                  ) : <span class="dim">—</span>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div id="addrSummary" class="table-sum mono" role="status" aria-live="polite">
+        {t.addr.summary.replace('{n}', String(rows.length)).replace('{c}', String(contracts)).replace('{e}', String(eoas))}
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="addr-method">
+    <div class="wrap">
+      <div class="sec-head"><h2>{t.section.method}</h2></div>
+      <div class="method-grid">
+        <div class="method">
+          <ul class="kv">
+            <li><span>{t.method.endpoint}</span><b class="mono">{RPC_URL}</b></li>
+            <li><span>{t.method.multicall}</span><b class="mono">{henesys.contracts.multicall3.address}</b></li>
+            <li><span>{t.method.call}</span><b class="mono">{t.method.callValue}</b></li>
+            <li><span>{t.addr.colChain}</span><b class="mono">henesys</b></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</Site>
+
+<script>
+  import { attachSegCard } from '../lib/segcard';
+
+  const T = JSON.parse(document.getElementById('i18nData')!.textContent!);
+
+  /* ---------- Category bar hover ---------- */
+  document
+    .querySelectorAll<HTMLElement>('.addr-catbar')
+    .forEach((h) => attachSegCard(h, { ofTotal: T.seg.ofTotal, holder: T.seg.holder, status: T.seg.status }));
+
+  /* ---------- Filter · sort ---------- */
+  const body = document.getElementById('addrBody') as HTMLTableSectionElement | null;
+  const summary = document.getElementById('addrSummary');
+  const all = Array.from(body?.querySelectorAll<HTMLTableRowElement>('tr') ?? []);
+  let type = 'all';
+  let sort = 'balance';
+
+  function apply() {
+    const visible = all.filter((tr) => type === 'all' || tr.dataset.type === type);
+    for (const tr of all) tr.hidden = !visible.includes(tr);
+
+    const sorted = [...visible].sort((a, b) =>
+      sort === 'balance'
+        ? Number(b.dataset.balance) - Number(a.dataset.balance)
+        : (a.dataset.name ?? '').localeCompare(b.dataset.name ?? ''),
+    );
+    for (const tr of sorted) body?.appendChild(tr);
+
+    const ct = visible.filter((tr) => tr.dataset.type === 'contract').length;
+    if (summary) {
+      summary.textContent = String(T.addr.summary)
+        .replace('{n}', String(visible.length))
+        .replace('{c}', String(ct))
+        .replace('{e}', String(visible.length - ct));
+    }
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('#addrType button').forEach((b) => {
+    b.addEventListener('click', () => {
+      type = b.dataset.type ?? 'all';
+      document.querySelectorAll('#addrType button').forEach((x) =>
+        x.setAttribute('aria-pressed', String(x === b)));
+      apply();
+    });
+  });
+  document.querySelectorAll<HTMLButtonElement>('#addrSort button').forEach((b) => {
+    b.addEventListener('click', () => {
+      sort = b.dataset.sort ?? 'balance';
+      document.querySelectorAll('#addrSort button').forEach((x) =>
+        x.setAttribute('aria-pressed', String(x === b)));
+      apply();
+    });
+  });
+  apply();
+
+  /* ---------- Copy address ---------- */
+  document.querySelectorAll<HTMLButtonElement>('.copy-btn').forEach((b) => {
+    b.addEventListener('click', async () => {
+      const v = b.dataset.copy;
+      if (!v) return;
+      try {
+        await navigator.clipboard.writeText(v);
+      } catch {
+        // Environment with no clipboard permission — leave the text selectable and move on quietly
+        return;
+      }
+      const base = b.getAttribute('aria-label') ?? T.addr.copy;
+      b.classList.add('is-copied');
+      b.setAttribute('title', T.addr.copied);
+      b.setAttribute('aria-label', `${T.addr.copied} — ${base}`);
+      setTimeout(() => {
+        b.classList.remove('is-copied');
+        b.setAttribute('title', T.addr.copy);
+        b.setAttribute('aria-label', base);
+      }, 1200);
+    });
+  });
+</script>

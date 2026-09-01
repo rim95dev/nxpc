@@ -1,0 +1,249 @@
+/**
+ * Default locale. Other locales have to match the type of this object, so a
+ * missing key fails the build (see src/i18n/ko.ts).
+ *
+ * No sentences here. Labels, units and table headings only — if something needs
+ * explaining, make it a table or a legend, not a paragraph.
+ */
+export const en = {
+  htmlLang: 'en',
+  /** Open Graph locale tag for this dictionary. */
+  ogLocale: 'en_US',
+  /** BCP-47 tag handed to Intl.NumberFormat. */
+  numberLocale: 'en-US',
+  /**
+   * Ladder used to shorten numbers on axis ticks and bar labels, largest
+   * threshold first. Locales group digits differently — a Korean dictionary
+   * would list eok (1e8) and man (1e4) here instead.
+   */
+  compactScale: [
+    { at: 1_000_000_000, suffix: 'B' },
+    { at: 1_000_000, suffix: 'M' },
+    { at: 1_000, suffix: 'K' },
+  ] as { at: number; suffix: string }[],
+  title: 'NXPC circulation',
+  description: 'NXPC circulating supply and bridged amount, read from the henesys public RPC.',
+  brand: 'NXPC Supply',
+
+  langName: 'English',
+  themeLabel: { light: 'Theme: light', dark: 'Theme: dark' },
+
+  /** Sits above the header on every page while the data is not yet real. */
+  preview: 'Preview build — every address and figure on this site is placeholder data, not a real value.',
+
+  notice: {
+    badge: 'Placeholder',
+    wallets: 'wallets',
+    history: 'history.csv',
+  },
+
+  nav: { supply: 'Supply', addresses: 'Addresses' },
+
+  seg: {
+    items: 'Includes',
+    attributed: 'Known holders',
+    chainNote: 'Route',
+    fromDoc: 'doc',
+    ofTotal: 'of max supply',
+    ofCirculating: 'of circulating supply',
+    holder: 'Holder',
+    status: 'Status',
+    chain: 'Chain',
+  },
+
+  addr: {
+    title: 'Managed addresses',
+    description: 'Contracts and EOAs operated by the team, with on-chain balances.',
+    count: 'entries',
+    countLabel: 'Entries',
+    summary: '{n} entries · {c} contracts · {e} EOAs',
+    perCat: 'Entries',
+    contracts: 'contracts',
+    eoas: 'EOAs',
+    totalHeld: 'Total held',
+    colLabel: 'Label',
+    colType: 'Type',
+    colChain: 'Chain',
+    colAddress: 'Address',
+    colBalance: 'Balance (NXPC)',
+    colToken: 'Token',
+    colOwner: 'Owner',
+    typeContract: 'contract',
+    typeEoa: 'EOA',
+    filterAll: 'All',
+    filterContract: 'Contracts',
+    filterEoa: 'EOAs',
+    copy: 'Copy',
+    copied: 'Copied',
+    notRead: 'not read',
+    notReadWhy: 'other chain',
+    cat: {
+      bridge: 'Bridge',
+      vault: 'Vault',
+      treasury: 'Treasury',
+      ops: 'Ops',
+      token: 'Token',
+      infra: 'Infra',
+    },
+    sortBalance: 'Balance',
+    sortLabel: 'Label',
+  },
+
+  rpc: { connecting: 'connecting', failed: 'RPC failed', behind: 'behind baked', latest: 'latest' },
+
+  page: {
+    title: 'NXPC circulation',
+    lede: 'NXPC is the native token of MapleStory Universe. It pays network fees on the L1, exchanges two-way with in-game NFTs, and is distributed as contribution rewards on a halving schedule. Max supply is capped at 1 billion.',
+  },
+
+  learn: {
+    heading: 'Learn more about',
+    links: [
+      { label: 'TBD — link 1', href: '#' },
+      { label: 'TBD — link 2', href: '#' },
+      { label: 'TBD — link 3', href: '#' },
+      { label: 'TBD — link 4', href: '#' },
+    ],
+  },
+
+  hero: {
+    eyebrow: 'Circulating supply',
+    unit: 'NXPC',
+    ofTotal: 'of max supply',
+    strict: 'Free float · all chains',
+    exVault: 'ex. NXPCRecycleVault',
+  },
+
+
+  tier: {
+    burn: 'Burned',
+    locked: 'Locked · rewards pool',
+    team: 'Vesting · team & advisors',
+    fusion: 'Fusion reserve',
+    bridge: 'Bridge locked',
+    treasury: 'Treasury',
+    wrapper: 'Wrapped collateral',
+    ecosystem: 'Ecosystem fund',
+    ops: 'Operational wallets',
+    circulating: 'Circulating',
+  },
+  term: {
+    freeFloatHenesys: 'Free float · Henesys',
+    freeFloat: 'Free float',
+    maxSupply: 'Max supply',
+    burned: 'Burned',
+    nonCirculating: 'Locked',
+    circulating: 'Circulating supply',
+  },
+
+  tile: { fixedCap: 'Fixed cap' },
+
+  pieMode: {
+    label: 'Scope',
+    all: 'All',
+    byChain: 'By chain',
+    circOnly: 'Circulating',
+  },
+  section: {
+    breakdown: 'Supply distribution',
+    barCaption: 'Full width = max supply',
+    trend: 'Circulating supply history',
+    bridge: 'Bridged NXPC',
+    method: 'Methodology',
+  },
+
+  chart: {
+    totalIssuedLine: 'Max supply',
+    gapLabel: 'Locked',
+    clamped: '<1%, enlarged',
+    handoverRight: 'daily →',
+    handoverLeft: '← daily',
+    legendCirculating: 'Circulating',
+    legendCap: 'Max supply',
+    legendGap: 'Locked',
+    uploaded: 'Uploaded',
+    daily: 'Daily',
+    days: 'd',
+    handoverAt: 'handover',
+    gapWarn: 'missing days',
+  },
+
+
+
+  range: { d30: '30D', d90: '90D', y1: '1Y', all: 'All' },
+
+  bridge: {
+    current: 'Bridged now',
+    ofCirculating: 'of circulating supply',
+    spark: 'last 180d',
+    l1: 'Henesys L1',
+    l1Sub: 'native gas token',
+    cchain: 'Avalanche C-Chain',
+    cchainSub: 'C_NXPC ERC-20 · 18',
+  },
+
+  table: {
+    category: 'Category',
+    holder: 'Holder',
+    address: 'Address',
+    balance: 'Balance (NXPC)',
+    share: 'Share',
+    inPolicy: 'Policy',
+    inStrict: 'Strict',
+    counted: 'Circulating',
+    addrPending: 'TBD',
+    tagCounted: 'counted',
+    tagExcluded: 'excluded',
+    tagBurned: 'burned',
+    filterAll: 'All',
+    filterCounted: 'Counted',
+    filterExcluded: 'Excluded',
+    summary: '{shown} rows · {counted} counted · {excluded} excluded · {burned} burned',
+    readFailed: 'read failed',
+  },
+
+  method: {
+    formula: 'Circulating supply = Max supply − Burned − Rewards pool − Vesting − Fusion reserve',
+    formulaStrict: 'Free float = Circulating supply − Bridge locked − Treasury − Wrapped collateral − Ecosystem fund − Ops',
+    endpoint: 'Endpoint',
+    chainId: 'Chain ID',
+    multicall: 'Multicall3',
+    call: 'Call',
+    callValue: 'aggregate3 · one eth_call',
+    maxSupplyNote: 'fixed constant · no totalSupply() (native gas token)',
+    scopeHead: { bucket: 'Deduction', inTotal: 'In circulating', inCirculating: 'In free float' },
+    scope: {
+      reserve: 'Foundation · vesting · vault · ops',
+      bridge: 'Bridge locked',
+      burned: 'Burned (zero address)',
+    },
+    seriesHead: { part: 'Segment', source: 'Source', by: 'By' },
+    series: {
+      past: 'Past',
+      pastSource: 'history.csv',
+      pastBy: 'manual upload',
+      now: 'Present',
+      nowSource: 'daily 00:00 UTC',
+      nowBy: 'GitHub Actions',
+      future: 'Future',
+      futureSource: 'snapshots/*.json',
+      futureBy: 'accumulates',
+    },
+  },
+
+  foot: {
+    snapshot: 'Snapshot',
+    block: 'block',
+    freshness: 'Freshness',
+    build: 'BUILD',
+    fresh: 'FRESH',
+    stale: 'STALE',
+    ago: 'ago',
+    min: 'm',
+    hour: 'h',
+    rpcCheckFailed: 'RPC check failed',
+    disclaimer: 'Placeholder figures · not an official disclosure',
+  },
+};
+
+export type Dict = typeof en;

@@ -1,0 +1,280 @@
+# NXPC wallet registry — the source of truth for this page.
+#
+# Validated against a Zod schema at build time. A malformed address or a missing
+# required field fails the build (src/lib/wallets.ts).
+#
+# ── Why the classification ───────────────────────────────────────────────
+# tier   Deduction step. Decides which rung of the ladder an entry goes into.
+#   burn      Burned, unrecoverable
+#   locked    Locked, undistributed reserve (contribution rewards)
+#   team      Team and advisor vesting
+#   fusion    NXPC Valhalla — reserve that comes in via Fission and goes out via Fusion
+#   ↑ Everything down to here is an official deduction in Confluence «Token circulating supply policy».
+#     circulating = total issued − burned − contribution reward balance − locked supply − Valhalla balance
+#
+#   bridge    Bridge lock. It exists as a wrapped token on another chain, so not deducting it double-counts
+#   treasury  Company holdings, revenue and fees
+#   wrapper   The portion of wrapper collateral the company holds the claim on
+#   ops       Operational hot wallets
+#   ecosystem Undistributed ecosystem incentives
+#   ↑ Deduct down to here as well and only «supply outside issuer control» is left (the conservative basis).
+#
+# strictCirculating
+#   Whether it counts as circulating under the «issuer control basis». No default is set.
+#   Circulating under the «policy basis» is decided by tier, not by this field — the policy
+#   deducts only four, burn·locked·team·fusion, while treasury·ecosystem·ops·bridge·wrapper
+#   are included in circulating supply because the Confluence asset flow table says they «can be circulated at any time».
+# share        Used when one address is split into shares (wrapper). Defaults to 1.
+# static       An aggregate entry whose address is not published. Not read on-chain; the source is recorded instead.
+#
+# Sources: Notion «NXPC supply definition» (2026-08-29)
+#          Confluence «Token circulating supply policy» v10 (MapleNFT)
+# Check balances: node scripts/scan-balances.mjs
+
+# ── Burn ────────────────────────────────────────────────────────────────
+- id: burn
+  tier: burn
+  label: { en: Burned }
+  holder: { en: "0x…dEaD" }
+  address: "0x000000000000000000000000000000000000dEaD"
+  strictCirculating: false
+
+- id: burn-zero
+  tier: burn
+  label: { en: Zero address }
+  holder: { en: "0x…0000" }
+  address: "0x0000000000000000000000000000000000000000"
+  strictCirculating: false
+
+# ── Locked · undistributed reserve ──────────────────────────────────────
+- id: contribution-reward-distributor
+  tier: locked
+  label: { en: Contribution reward pool }
+  holder: { en: ContributionRewardDistributor }
+  address: "0xeEc5d35E12E5d78CF724350978754b65AE255C33"
+  strictCirculating: false
+
+# ── Team · advisor vesting ──────────────────────────────────────────────
+- id: team-vesting
+  tier: team
+  label: { en: Team vesting }
+  holder: { en: TeamVestingWallet }
+  address: "0xdA24fEf18739a118e0BE6519EC83acA71C977b34"
+  strictCirculating: false
+
+- id: advisor-vesting
+  tier: team
+  label: { en: Advisor vesting }
+  holder: { en: AdvisorVestingWallet }
+  address: "0x59A95Ef49BEF691119008Db202Bf0F8c3b4ec2f5"
+  strictCirculating: false
+
+# ── Fusion reserve (NXPC Valhalla) ──────────────────────────────────────
+# Minting an item through Fission piles NXPC up here, and when a Fusion happens
+# it goes out to the participant at the exchange rate. This is not a burn — the reserve can come back.
+- id: cold-recycle-vault
+  tier: fusion
+  label: { en: Fusion reserve · cold }
+  holder: { en: ColdNXPCRecycleVault }
+  address: "0x959e7008f257B278A314Ef2208e28200118dA408"
+  strictCirculating: false
+
+- id: recycle-vault
+  tier: fusion
+  label: { en: Fusion reserve · hot }
+  holder: { en: NXPCRecycleVault }
+  address: "0xA5489F2739Bd8E447f768EDeFAb032dD8466B428"
+  strictCirculating: false
+
+# ── Bridge lock (collateral for wrapped tokens on other chains) ─────────
+- id: l1-bridge-lock
+  tier: bridge
+  label: { en: Bridge lock }
+  holder: { en: SourceBridge }
+  address: "0x59211b32AC0bFC2cdD67ee1Cb89979D2d33E74C8"
+  strictCirculating: false
+
+# ── Treasury · company holdings ─────────────────────────────────────────
+- id: revenue-wallet
+  tier: treasury
+  label: { en: Revenue }
+  holder: { en: RevenueWallet }
+  address: "0x40328F0fe525230666A04fcAC1f512f2b6F08eFa"
+  strictCirculating: false
+
+- id: nuc-ipmg-wallet
+  tier: treasury
+  label: { en: IP management }
+  holder: { en: NUCIPMGWallet }
+  address: "0x9F98cfa105f04Ad42FA517d63bBeed4ff892554F"
+  strictCirculating: false
+
+- id: creator-wallet
+  tier: treasury
+  label: { en: Creator wallet }
+  holder: { en: CreatorWallet }
+  address: "0x79a3a495135E3d617D74BB8D960Ef026b1810737"
+  strictCirculating: false
+
+- id: treasury
+  tier: treasury
+  label: { en: Treasury }
+  holder: { en: Treasury }
+  address: "0xcCB08010676cb69B70fcaD5e3F49848EF2410aE8"
+  strictCirculating: false
+
+- id: warp-fee-wallet
+  tier: treasury
+  label: { en: Warp fee }
+  holder: { en: WarpFeeWallet }
+  address: "0x009944D77720BFd667D42cd24bB3fe17323930Ab"
+  strictCirculating: false
+
+- id: hot-platform-fee-wallet
+  tier: treasury
+  label: { en: Platform fee · hot }
+  holder: { en: HotPlatformFeeWallet }
+  address: "0x43fF86B251a5Bed5a3B72f03783f74C20E212435"
+  strictCirculating: false
+
+- id: platform-fee-wallet
+  tier: treasury
+  label: { en: Platform fee }
+  holder: { en: PlatformFeeWallet }
+  address: "0x9Af1ebEA502eB5743e4a45d702dc56Ddf8149731"
+  strictCirculating: false
+
+# ── Wrapper collateral — split by who holds the claim ───────────────────
+# NextMeso takes NXPC on deposit and issues NESO. The company holds 88.76% of the
+# NESO, so that much of the collateral NXPC is under company control too.
+# The share cannot be known from on-chain balances alone, so the surveyed figure from the Notion document is used.
+- id: nextmeso-company
+  tier: wrapper
+  label: { en: NextMeso collateral · company }
+  holder: { en: NextMeso }
+  address: "0x07E49Ad54FcD23F6e7B911C2068F0148d1827c08"
+  share: 0.8876
+  shareSource: { en: "NESO holders, 2026-08-29" }
+  strictCirculating: false
+
+- id: nextmeso-user
+  tier: circulating
+  label: { en: NextMeso collateral · users }
+  holder: { en: NextMeso }
+  address: "0x07E49Ad54FcD23F6e7B911C2068F0148d1827c08"
+  share: 0.1124
+  shareSource: { en: "NESO holders, 2026-08-29" }
+  strictCirculating: true
+
+# wNXPC is operated by an outside company called Algebra. It is outside issuer
+# control and its largest holder is a DEX liquidity pool, so all of it is circulating.
+- id: wnxpc
+  tier: circulating
+  label: { en: wNXPC collateral }
+  holder: { en: wNXPC (Algebra) }
+  address: "0x150869eac5C58d3655f860C4316107fB626244d0"
+  strictCirculating: true
+
+# ── Undistributed ecosystem incentives ──────────────────────────────────
+- id: ecosystem-builder
+  tier: ecosystem
+  label: { en: Builder program }
+  holder: { en: EcosystemBuilderProgram }
+  address: "0x5a959a0F0897e3922B75DD4b7c81F9FA829d1528"
+  strictCirculating: false
+
+- id: nxpc-distributor
+  tier: ecosystem
+  label: { en: Distributor }
+  holder: { en: NXPCDistributor }
+  address: "0x8ea5DE940fDFFd29f953746d596b8B55aFa03E54"
+  strictCirculating: false
+
+- id: nxpc-claim
+  tier: ecosystem
+  label: { en: Unclaimed }
+  holder: { en: NXPCClaim }
+  address: "0xa8baad3115A133B101EF935Cb2e198FD04F1C659"
+  strictCirculating: false
+
+- id: vrf-coordinator
+  tier: ecosystem
+  label: { en: VRF coordinator }
+  holder: { en: VRFCoordinator }
+  address: "0x51fEDe228AcA66ABE237AABF891EA355A7E09140"
+  strictCirculating: false
+
+# ── Operational hot wallets ─────────────────────────────────────────────
+- id: gas-sponsor-wallet
+  tier: ops
+  label: { en: Gas sponsor }
+  holder: { en: GasSponsorWallet }
+  address: "0x2DB1C7440E885A171840F64D63e51f59Ff26eac5"
+  strictCirculating: false
+
+# A bundle of operational wallets whose addresses are not published. Game operation
+# hot wallets spread evenly by purpose, like Character_1~5 · MulticallWallet_1~14 · Market_1~15.
+# Not read on-chain; the aggregate from the document is used — leave it out and circulating supply is inflated by that much.
+- id: ops-wallets
+  tier: ops
+  label: { en: Operational hot wallets }
+  holder: { en: "172 wallets" }
+  static: 1146333
+  staticSource: { en: "Notion «Supply definition», 2026-08-29" }
+  strictCirculating: false
+
+# ── Legacy wallets ──────────────────────────────────────────────────────
+# All of them hold 0 today, so they do not affect the current numbers. They only have a value during backfill.
+# On 2025-10-30 (block 6,682,141) the genesis supply moved into the contracts above, and
+# without these wallets the period before that only accounts for 24% of total issuance.
+
+- id: contribution-reward-wallet
+  tier: locked
+  label: { en: Rewards pool · legacy }
+  holder: { en: ContributionRewardWallet }
+  address: "0x164ce897e8f6862bcf3914Ad7aA2472B9154128A"
+  strictCirculating: false
+
+- id: contribution-reward-dist-wallet
+  tier: locked
+  label: { en: Rewards distribution }
+  holder: { en: ContributionRewardDistributionWallet }
+  address: "0xfF8e0E1b645AcD15a93Bdd77AE7Dc203Dc345531"
+  strictCirculating: false
+
+- id: contribution-reward-dist-wallet-old
+  tier: locked
+  label: { en: Rewards distribution · deprecated }
+  holder: { en: ContributionRewardDistributionWallet }
+  address: "0x418353dad305D1796334623c308E1b2D5BB2A250"
+  strictCirculating: false
+
+- id: ipmg-legacy
+  tier: treasury
+  label: { en: IP management · legacy }
+  holder: { en: IPMG }
+  address: "0x09E137512F30e1A489951F8538Ca0967dFd7FDe9"
+  strictCirculating: false
+
+- id: exchange-offering
+  tier: ecosystem
+  label: { en: Exchange offering }
+  holder: { en: EcosystemExchangeOfferingWallet }
+  address: "0xACfd5169Ba50a5Fb7b561efA0286A65dE7DFB671"
+  strictCirculating: false
+
+- id: community-airdrop
+  tier: ecosystem
+  label: { en: Community airdrop }
+  holder: { en: CommunityAirdropWallet }
+  address: "0x9525B6da53de6BdDae70F2C56Bbd47CA91406b6b"
+  strictCirculating: false
+
+# Confluence «Token circulating supply policy» — Liquidity Provision is treated as circulating
+# ("because it is used for trading by the liquidity providers")
+- id: liquidity-provision
+  tier: circulating
+  label: { en: Liquidity provision }
+  holder: { en: LiquidityProvisionWallet }
+  address: "0xD1Ef1787497789d71FaaA85947035ED64F3b8Ad6"
+  strictCirculating: true

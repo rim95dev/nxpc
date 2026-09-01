@@ -1,0 +1,143 @@
+# Managed address registry — contracts / EOAs the team operates.
+#
+# Validated with Zod at build time (src/lib/addresses.ts).
+# label / owner are written as noun phrases per locale. Do not put sentences in this table either.
+#
+#   type      contract | eoa
+#   category  bridge | vault | treasury | ops | token | infra
+#   chain     henesys | c-chain      (balances are read for henesys only)
+#   standard  (optional) erc20 | erc721  — when present, name/symbol/totalSupply are read too
+#   balanceHint (optional) temporary balance, used only while the placeholder marker below is present
+#
+# ⚠️ Every address below is a placeholder.
+#    When replacing them with real addresses, delete the `# placeholder` line at the top of this file.
+#    balanceHint is then ignored and the on-chain balance is read.
+# placeholder
+
+- id: l1-source-bridge
+  type: contract
+  category: bridge
+  chain: henesys
+  label: { en: L1 Source Bridge }
+  owner: { en: Bridge ops multisig }
+  address: "0x0000000000000000000000000000000000000b01"
+  balanceHint: 53500000
+
+- id: thirdparty-bridge
+  type: contract
+  category: bridge
+  chain: henesys
+  label: { en: Thirdparty Bridge }
+  owner: { en: Bridge ops multisig }
+  address: "0x0000000000000000000000000000000000000b02"
+  balanceHint: 1840000
+
+- id: warp-fee-wallet
+  type: contract
+  category: bridge
+  chain: henesys
+  label: { en: WarpFeeWallet }
+  owner: { en: Bridge ops multisig }
+  address: "0x0000000000000000000000000000000000000b03"
+  balanceHint: 96400
+
+- id: nxpc-recycle-vault
+  type: contract
+  category: vault
+  chain: henesys
+  label: { en: NXPCRecycleVault }
+  owner: { en: Fission hot wallet }
+  address: "0x0000000000000000000000000000000000000c01"
+  balanceHint: 42660000
+
+- id: cold-nxpc-recycle-vault
+  type: contract
+  category: vault
+  chain: henesys
+  label: { en: ColdNXPCRecycleVault }
+  owner: { en: Recycle cold wallet }
+  address: "0x0000000000000000000000000000000000000c02"
+  balanceHint: 47340000
+
+- id: ecosystem-reserve
+  type: eoa
+  category: treasury
+  chain: henesys
+  label: { en: Ecosystem reserve }
+  owner: { en: Foundation cold wallet }
+  address: "0x0000000000000000000000000000000000000d01"
+  balanceHint: 380000000
+
+- id: team-vesting
+  type: contract
+  category: treasury
+  chain: henesys
+  label: { en: C_HotNXPTeamVesting }
+  owner: { en: Team incentive multisig }
+  address: "0x0000000000000000000000000000000000000d02"
+  balanceHint: 150000000
+
+- id: liquidity-ops
+  type: eoa
+  category: ops
+  chain: henesys
+  label: { en: Liquidity ops }
+  owner: { en: Ops multisig }
+  address: "0x0000000000000000000000000000000000000e01"
+  balanceHint: 41200000
+
+- id: marketing-ops
+  type: eoa
+  category: ops
+  chain: henesys
+  label: { en: Marketing ops }
+  owner: { en: Ops multisig }
+  address: "0x0000000000000000000000000000000000000e02"
+  balanceHint: 26460000
+
+- id: gas-relayer
+  type: eoa
+  category: infra
+  chain: henesys
+  label: { en: Gas relayer }
+  owner: { en: Backend service }
+  address: "0x0000000000000000000000000000000000000f01"
+  balanceHint: 128400
+
+- id: backoffice-grpc-signer
+  type: eoa
+  category: infra
+  chain: henesys
+  label: { en: Backoffice signer }
+  owner: { en: backoffice-grpc }
+  address: "0x0000000000000000000000000000000000000f02"
+  balanceHint: 74300
+
+- id: maplestory-equip
+  type: contract
+  category: token
+  chain: henesys
+  standard: erc721
+  label: { en: MaplestoryEquip }
+  owner: { en: Game contract }
+  address: "0x43dcff2a0cedcd5e10e6f1c18b503498ddce60d5"
+  balanceHint: 0
+
+- id: neso-token
+  type: contract
+  category: token
+  chain: henesys
+  standard: erc20
+  label: { en: NESO }
+  owner: { en: Game currency contract }
+  address: "0x0000000000000000000000000000000000000a01"
+  balanceHint: 0
+
+- id: c-nxpc
+  type: contract
+  category: token
+  chain: c-chain
+  standard: erc20
+  label: { en: C_NXPC }
+  owner: { en: Avalanche C-Chain mirror }
+  address: "0x5E0E90E268BC247CC850A789F0B0C6D0C1D3fb59"

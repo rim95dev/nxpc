@@ -1,0 +1,1331 @@
+/* =========================================================
+   NXPC supply — MSU theme
+
+   Palette source: NEXPACE-Limited/msu-skills · web/app/globals.css
+   The four petal colors in favicon.svg are the MSU base colors. The four map one
+   to one onto NXPC's four states.
+
+   Used as two layers.
+     --c-*      field       — bar segments, area fills. Raw petal colors as-is.
+     --c-*-ink  lines/text  — in light mode, a darkened variant is used.
+   The raw petal colors were meant as "surfaces you put ink on", so used as lines
+   on a white background they only reach 1.50~3.62:1 contrast. msu-skills keeps
+   --link at #166c4b separately for the same reason. In dark mode the two layers
+   are the same values.
+
+   The theme has two states. The bare :root carries the complete light palette,
+   and :root[data-color-mode="dark"] is what the toggle stamps. The OS setting is
+   deliberately not followed, so there is no prefers-color-scheme block.
+   Never declare a component color inside the dark block alone — it does not
+   apply before the stamp, which puts one theme's text on the other theme's
+   ground.
+   ========================================================= */
+
+:root {
+  color-scheme: light;
+
+  /* ---- MSU 4 colors · field ---- */
+  --mint:   #30efa6;
+  --blue:   #669dff;
+  --pink:   #ff76ff;
+  --purple: #c24dff;
+  /* The supply breakdown has six slots, so four colors are not enough. Two deeper variants, same families. */
+  --mint-2: #12c98a;
+  --blue-2: #3f74d9;
+
+  --c-circ:   var(--mint);
+  --c-bridge: var(--blue);
+  /* Non-circulating and burn are grays. They are the share that is only held or
+     already gone, so they get no color — the four colors stay on the "living"
+     circulating side. */
+  --c-locked: #7c8683;
+  --c-burn:   #4d5654;
+
+  /* ---- 4 colors · lines/text (≥4.5:1 on white) ---- */
+  --c-circ-ink:   #166c4b;   /* 6.40:1 — same as msu-skills --link */
+  --c-bridge-ink: #1a5fd6;   /* 5.75:1 */
+  --c-locked-ink: #4a534f;   /* 7.95:1 */
+  --purple-ink: #a100f6;     /* 4.73:1 on the badge wash */
+  --pink-ink:   #be00be;     /* 4.84:1 */
+  --c-burn-ink:   #3a4340;   /* 10.21:1 */
+
+  /* Non-circulating bucket ramp — the ground is white, so it darkens going down */
+  --lock-1: #7c8683;
+  --lock-2: #6c7673;
+  --lock-3: #5c6663;
+  --lock-4: #4c5553;
+  --lock-5: #3d4644;
+
+  /* ---- Neutrals ---- */
+  --canvas:    #ffffff;
+  --raise:     #ffffff;
+  --coin-glow: #dff3ec;   /* Light source behind the hero coin */
+  --raise-2:   #f2f5f4;
+  --line:      #e4e8e6;
+  --line-hard: #c2cac7;
+  --on-color:  #0d1210;
+
+  --ink:    #0d1210;
+  --ink-2:  #3a4441;
+  --ink-3:  #5c6764;
+  --ink-4:  #67716f;   /* 4.80:1 on ground-2 — the footer and table summary pass AA too */
+  --fill-neutral: #d7dedb;   /* Large neutral fill. An ink color used as a fill looks heavy in light */
+
+  /* ---- Translucents for filled areas ---- */
+  --circ-wash:   rgba(22, 108, 75, .10);
+  --bridge-wash: rgba(26, 95, 214, .10);
+  --locked-wash: rgba(74, 83, 79, .10);
+  --burn-wash:   rgba(58, 67, 64, .10);
+
+  /* ---- Per-component colors (the ones whose values differ per theme) ---- */
+  --ground:     var(--canvas);
+  --ground-2:   #f7faf9;
+  --surface:    var(--raise);
+  --surface-2:  var(--raise-2);
+  --rule:       var(--line);
+  --rule-2:     var(--line-hard);
+
+  --notice-a:    #f6ecfb;
+  --notice-b:    #efe1f7;
+  --notice-line: #dcc0ec;
+  --notice-ink:  #5b2b75;
+  --warn-bg:     #fceef4;
+  --warn-ink:    #8c1f56;
+  /* Preview banner. Red, distinct from --warn so the two never blur together. */
+  --danger:      #a4120b;
+  --danger-bg:   #fdecea;
+  --danger-line: #f3c9c5;
+  --bad-line:    #d99ad9;
+  --bad-ink:     #8c1f6e;
+  --glow-1:      rgba(48, 239, 166, .16);
+  --glow-2:      rgba(194, 77, 255, .12);
+  --seg-divider: rgba(255, 255, 255, .85);
+  --seg-edge:    rgba(13, 18, 16, .14);
+  /* Cylinder shading — specular highlight on top + shadow at the bottom. */
+  --cyl-shade: linear-gradient(to bottom,
+    rgba(255,255,255,.62) 0%, rgba(255,255,255,.30) 16%,
+    rgba(255,255,255,.06) 42%, rgba(0,0,0,.05) 58%,
+    rgba(0,0,0,.13) 82%, rgba(0,0,0,.20) 100%);
+  --cyl-rim: rgba(13, 18, 16, .18);
+  --pie-edge: rgba(13, 18, 16, .16);
+  --pie-edge-hi: rgba(255, 255, 255, .50);
+  --donut-seam: rgba(9, 14, 12, .26);
+  --donut-wash: rgba(13, 18, 16, .05);
+  --glass-fill: rgba(255, 255, 255, .55);
+  --glass-line: rgba(13, 18, 16, .10);
+  --glass-hi: rgba(255, 255, 255, .90);
+  --glass-glow-a: rgba(48, 239, 166, .20);
+  --glass-glow-b: rgba(102, 157, 255, .18);
+  --pie-label: #0d1210;
+  --pie-halo: #ffffff;
+  --pie-halo-a: .75;
+  --tip-shadow:  0 6px 22px rgba(13, 18, 16, .14);
+
+  --font-sans: 'Roboto', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+  --font-cond: 'Sofia Sans Condensed', 'Roboto', 'Noto Sans KR', sans-serif;
+  --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --wrap: 1160px;
+  --pad: 18px;
+}
+
+@media (min-width: 640px)  { :root { --pad: 28px; } }
+
+/* The dark palette. These are the msu-skills dark values — saturation cut 28% and
+   luminance tuned per hue so they pass AA against dark ink. In dark, field and ink
+   are the same value. */
+
+:root[data-color-mode="dark"] {
+  color-scheme: dark;
+
+  --mint:   #4bbc91;
+  --blue:   #698ecd;
+  --pink:   #ce75ce;
+  --purple: #ac58d8;
+  --mint-2: #3a9f79;
+  --blue-2: #52709f;
+
+  --c-locked: #8b9591;
+  --c-burn:   #5f6a66;
+
+  --c-circ-ink:   var(--c-circ);
+  --c-bridge-ink: var(--c-bridge);
+  --c-locked-ink: #a6b0ac;   /* 8.13:1 */
+  --purple-ink: #bc78df;
+  --pink-ink:   #cf77cf;
+  --c-burn-ink:   #939e9a;   /* 6.56:1 */
+
+  --lock-1: #8b9591;
+  --lock-2: #7a8480;
+  --lock-3: #69736f;
+  --lock-4: #58625e;
+  --lock-5: #47514d;
+
+  --canvas:    #0a0d0c;
+  --raise:     #121715;
+  --coin-glow: #1b2b28;
+  --raise-2:   #182120;
+  --line:      #212927;
+  --line-hard: #39433f;
+  --on-color:  #0d1210;
+
+  --ink:    #eef3f1;
+  --ink-2:  #bcc6c2;
+  --ink-3:  #939e9a;
+  --ink-4:  #7c8782;
+  --fill-neutral: #4a5350;
+
+  --circ-wash:   rgba(75, 188, 145, .12);
+  --bridge-wash: rgba(105, 142, 205, .14);
+  --locked-wash: rgba(139, 149, 145, .16);
+  --burn-wash:   rgba(95, 106, 102, .18);
+
+  --ground-2:   #060908;
+  --notice-a:    #1d1526;
+  --notice-b:    #171120;
+  --notice-line: #3a2c4d;
+  --notice-ink:  #d9c2e6;
+  --warn-bg:     #241827;
+  --warn-ink:    #edc4ed;
+  --danger:      #ff9d95;
+  --danger-bg:   #2a1614;
+  --danger-line: #43201d;
+  --bad-line:    #7a3d7a;
+  --bad-ink:     #edc4ed;
+  --glow-1:      rgba(75, 188, 145, .09);
+  --glow-2:      rgba(172, 88, 216, .11);
+  --seg-divider: rgba(10, 13, 12, .65);
+  --seg-edge:    transparent;
+  --cyl-shade: linear-gradient(to bottom,
+    rgba(255,255,255,.30) 0%, rgba(255,255,255,.14) 16%,
+    rgba(255,255,255,.03) 42%, rgba(0,0,0,.10) 58%,
+    rgba(0,0,0,.24) 82%, rgba(0,0,0,.34) 100%);
+  --cyl-rim: rgba(0, 0, 0, .45);
+  --pie-edge: rgba(0, 0, 0, .34);
+  --pie-edge-hi: rgba(255, 255, 255, .34);
+  --donut-seam: rgba(0, 0, 0, .42);
+  --donut-wash: rgba(4, 12, 9, .42);
+  --glass-fill: rgba(255, 255, 255, .085);
+  --glass-line: rgba(255, 255, 255, .16);
+  --glass-hi: rgba(255, 255, 255, .34);
+  --glass-glow-a: rgba(75, 188, 145, .26);
+  --glass-glow-b: rgba(105, 142, 205, .26);
+  --pie-label: #eef3f1;
+  --pie-halo: #05100c;
+  --pie-halo-a: .8;
+  --tip-shadow:  0 6px 22px rgba(0, 0, 0, .55);
+}
+
+
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink-2);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--c-circ-ink); text-decoration: none; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--c-circ-ink); outline-offset: 2px; }
+
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.dim  { color: var(--ink-4); }
+.accent2 { color: var(--c-bridge-ink); }
+
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 28px; }
+
+/* ---------------- Placeholder data notice ---------------- */
+.notice {
+  background: repeating-linear-gradient(
+    -45deg, var(--notice-a) 0 12px, var(--notice-b) 12px 24px
+  );
+  border-bottom: 1px solid var(--notice-line);
+  color: var(--notice-ink);
+  font-size: 12.5px;
+  padding: 9px 28px;
+  text-align: center;
+}
+.notice b {
+  color: var(--c-locked-ink);
+  font-family: var(--font-cond);
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-right: 6px;
+}
+
+/* ---------------- Top bar ---------------- */
+.topbar {
+  border-bottom: 1px solid var(--rule);
+  background: var(--ground-2);
+  position: sticky; top: 0; z-index: 30;
+}
+.topbar-in {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; height: 58px;
+}
+.brand { display: flex; align-items: center; text-decoration: none; flex: none; }
+.brand:hover { text-decoration: none; }
+.brand-mark { display: block; width: 30px; height: 30px; }
+.brand:hover .brand-mark { opacity: .82; }
+.brand:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; border-radius: 4px; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: 11.5px; padding: 5px 12px;
+  border: 1px solid var(--rule-2); border-radius: 2px;
+  background: var(--surface); color: var(--ink-3);
+  white-space: nowrap; overflow-x: auto; max-width: 100%;
+}
+.pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-4); flex: none; }
+.pill .sep { width: 1px; height: 11px; background: var(--rule-2); flex: none; }
+.pill-k {
+  font-family: var(--font-cond); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3);
+}
+.pill-ok  { border-color: var(--c-circ-ink); color: var(--ink-2); }
+.pill-ok .dot { background: var(--c-circ); box-shadow: 0 0 0 3px var(--circ-wash); }
+.pill-warn { border-color: var(--notice-line); }
+.pill-warn .dot { background: var(--c-locked); }
+.pill-bad { border-color: var(--bad-line); color: var(--bad-ink); }
+.pill-bad .dot { background: var(--c-burn); }
+
+/* ---------------- Hero ---------------- */
+.hero {
+  padding: 62px 0 54px;
+  background:
+    radial-gradient(900px 340px at 12% -10%, var(--glow-1), transparent 70%),
+    radial-gradient(700px 300px at 88% 0%, var(--glow-2), transparent 70%);
+  border-bottom: 1px solid var(--rule);
+}
+.eyebrow {
+  font-family: var(--font-cond);
+  font-weight: 700; font-size: 13px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--c-circ-ink);
+  margin-bottom: 14px;
+}
+.hero-num {
+  display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  line-height: 1;
+}
+.hero-num > span:first-child {
+  font-size: clamp(40px, 8vw, 82px);
+  font-weight: 700; letter-spacing: -.03em; color: var(--ink);
+}
+.hero-unit {
+  font-family: var(--font-cond); font-weight: 700;
+  font-size: clamp(18px, 2.4vw, 26px); letter-spacing: .06em;
+  color: var(--c-circ-ink);
+}
+.hero-pct {
+  margin-top: 12px; font-size: 13px; color: var(--ink-3);
+}
+.hero-scope {
+  margin: 10px 0 0; max-width: 74ch; font-size: 14px; color: var(--ink-3);
+  border-left: 2px solid var(--c-locked); padding-left: 12px;
+}
+.hero-scope b { color: var(--ink); }
+
+/* Equation row */
+.equation {
+  display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px;
+  margin-top: 32px;
+}
+.eq-op {
+  display: flex; align-items: center;
+  font-family: var(--font-mono); font-size: 19px; color: var(--ink-4);
+  padding: 0 2px;
+}
+.eq-term {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 11px 16px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--rule-2);
+  min-width: 152px;
+  text-decoration: none;
+  transition: border-color .14s, background .14s;
+}
+.eq-term:hover { text-decoration: none; background: var(--surface-2); }
+.eq-k {
+  font-family: var(--font-cond); font-weight: 700; font-size: 12px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-4);
+}
+.eq-v { font-size: 17px; color: var(--ink); font-weight: 500; }
+.eq-total .eq-v { color: var(--ink-2); }
+.eq-total { border-top-color: var(--ink-3); }
+.eq-burn  { border-top-color: var(--c-burn); }
+.eq-burn .eq-v { color: var(--c-burn-ink); }
+.eq-non   { border-top-color: var(--c-locked); }
+.eq-non .eq-v { color: var(--c-locked-ink); }
+.eq-circ  { border-top-color: var(--c-circ); background: var(--circ-wash); }
+/* Only this cell has a wash ground, so the label cannot clear AA at --ink-4 */
+.eq-circ .eq-k { color: var(--ink-3); }
+.eq-circ .eq-v { color: var(--c-circ-ink); }
+.equation-note { margin: 12px 0 0; font-size: 12.5px; color: var(--ink-4); }
+
+/* ---------------- Sections ---------------- */
+.band { padding: 54px 0; border-bottom: 1px solid var(--rule); }
+.band-alt { background: var(--ground-2); }
+
+.sec-head { margin-bottom: 26px; }
+.sec-head h2 {
+  font-family: var(--font-cond); font-weight: 700;
+  font-size: 27px; letter-spacing: .01em; color: var(--ink);
+  margin: 0 0 6px;
+}
+.sec-head h3 {
+  font-family: var(--font-cond); font-weight: 700;
+  font-size: 18px; color: var(--ink); margin: 0 0 5px;
+  letter-spacing: .02em;
+}
+.sec-head p { margin: 0; font-size: 13.5px; color: var(--ink-3); max-width: 76ch; }
+.sec-head b { color: var(--ink-2); }
+.sec-head-sub { margin-top: 42px; }
+.sec-head-row {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 20px; flex-wrap: wrap;
+}
+
+.chips { display: flex; gap: 4px; flex: none; }
+.chips button {
+  font-family: var(--font-mono); font-size: 11.5px;
+  background: transparent; color: var(--ink-3);
+  border: 1px solid var(--rule-2); padding: 5px 12px;
+  cursor: pointer; border-radius: 2px;
+  transition: color .13s, border-color .13s, background .13s;
+}
+.chips button:hover { color: var(--ink); border-color: var(--ink-4); }
+.chips button[aria-pressed="true"] {
+  background: var(--c-circ); color: var(--on-color); border-color: var(--c-circ); font-weight: 700;
+}
+
+/* ---------------- KPI tiles ---------------- */
+.tiles {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1px; background: var(--rule);
+  border: 1px solid var(--rule);
+}
+.tile {
+  background: var(--surface); padding: 18px 20px 20px;
+  border-top: 2px solid var(--tile-accent, var(--rule-2));
+}
+.tile-k {
+  font-family: var(--font-cond); font-weight: 700; font-size: 12px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-4);
+  margin-bottom: 7px;
+}
+.tile-v { font-size: 24px; color: var(--ink); font-weight: 500; line-height: 1.15; }
+.tile-s { font-size: 12px; color: var(--ink-4); margin-top: 4px; }
+
+.warn {
+  margin: 16px 0 0; padding: 10px 14px; font-size: 13px;
+  background: var(--warn-bg); border-left: 2px solid var(--c-burn); color: var(--warn-ink);
+}
+
+/* ---------------- Charts, shared ---------------- */
+.chart { width: 100%; }
+.chart-area { margin-top: 8px; }
+
+
+.ax-label { font-family: var(--font-mono); font-size: 11px; fill: var(--ink-4); }
+.ax-note  { font-family: var(--font-mono); font-size: 11.5px; fill: var(--ink-3); }
+.ax-note.gap { fill: var(--c-locked-ink); }
+
+.charttip {
+  position: absolute; top: 10px;
+  background: var(--surface-2); border: 1px solid var(--rule-2);
+  padding: 9px 11px; min-width: 196px; pointer-events: none;
+  font-size: 12px; box-shadow: var(--tip-shadow);
+}
+.tip-date { color: var(--ink-4); font-size: 11px; margin-bottom: 6px; }
+.tip-row {
+  display: flex; align-items: center; gap: 7px; color: var(--ink-3);
+  line-height: 1.9;
+}
+.tip-row b { margin-left: auto; color: var(--ink); font-weight: 500; }
+.sw { width: 8px; height: 8px; flex: none; border-radius: 1px; }
+
+/* ---------------- Category bar ---------------- */
+.catbar-host { margin-top: 6px; }
+
+/* The breakdown bar stays a flat band — the waterfall above carries the volume.
+   Two 3D elements on the same screen steal attention from each other. */
+.catbar {
+  display: flex; width: 100%; height: 34px;
+  position: relative; isolation: isolate;
+  background: var(--surface);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--rule-2);
+}
+.catbar-seg {
+  flex-basis: 0; min-width: 3px; padding: 0;
+  border: 0; border-right: 1px solid var(--seg-divider);
+  background: var(--seg-color);
+  cursor: pointer; position: relative; z-index: 1;
+  transition: filter .16s, transform .16s;
+}
+.catbar-seg:last-child { border-right: 0; }
+.catbar-seg:hover,
+.catbar-seg:focus-visible { filter: brightness(1.22) saturate(1.1); }
+.catbar-seg.is-active { filter: brightness(1.3) saturate(1.15); }
+/* Keep the focus ring from being covered by the overlay below it in z-index */
+.catbar-seg:focus-visible {
+  /* Double ring — whether the segment color is light or dark, one of the two always has contrast. */
+  outline: 2px solid var(--canvas); outline-offset: -2px;
+  box-shadow: inset 0 0 0 4px var(--ink);
+  z-index: 3;
+}
+
+.catbar-host-tight .catbar { height: 22px; }
+
+.catlegend {
+  list-style: none; margin: 14px 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+  gap: 2px 22px;
+}
+.catlegend li {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 13px; color: var(--ink-3);
+  padding: 5px 0; border-bottom: 1px solid var(--rule);
+  cursor: default;
+}
+.catlegend li.lg-item:hover,
+.catlegend li.lg-item.is-active { color: var(--ink); }
+.catlegend li.lg-item:hover .sw,
+.catlegend li.lg-item.is-active .sw { box-shadow: 0 0 0 3px var(--surface-2); }
+.lg-label { flex: 1; min-width: 0; }
+.lg-val { color: var(--ink); }
+.lg-pct { color: var(--ink-4); min-width: 54px; text-align: right; }
+
+.catbar-host-tight { margin-top: 18px; }
+.catbar-host-tight .catlegend { display: none; }
+
+/* ---------------- Bridge ---------------- */
+.bridge-grid {
+  display: grid; grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.35fr);
+  gap: 1px; background: var(--rule); border: 1px solid var(--rule);
+}
+.bridge-main, .bridge-side { background: var(--surface); padding: 24px; }
+.bridge-main { border-top: 2px solid var(--c-bridge); }
+.bridge-num {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  margin: 6px 0 2px; line-height: 1.1;
+}
+.bridge-num > span:first-child {
+  font-size: clamp(28px, 4vw, 40px); color: var(--ink); font-weight: 500;
+  letter-spacing: -.02em;
+}
+.bridge-num .hero-unit { color: var(--c-bridge-ink); font-size: 15px; }
+.spark { margin-top: 20px; }
+.spark-cap {
+  font-family: var(--font-mono); font-size: 10.5px;
+  color: var(--ink-4); margin-top: 4px;
+}
+
+.chain-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 0; border-bottom: 1px solid var(--rule);
+}
+.chain-row:first-child { padding-top: 0; }
+.chain-dot { width: 9px; height: 9px; flex: none; border-radius: 50%; }
+.chain-meta { flex: 1; min-width: 0; }
+.chain-name {
+  font-family: var(--font-cond); font-weight: 700; font-size: 15.5px;
+  color: var(--ink); letter-spacing: .02em;
+}
+.chain-sub { font-size: 11.5px; color: var(--ink-4); }
+.chain-num { text-align: right; }
+.chain-num b { display: block; color: var(--ink); font-weight: 500; font-size: 15px; }
+.chain-num span { font-size: 11.5px; }
+
+/* ---------------- Wallet table ---------------- */
+.table-scroll { overflow-x: auto; border: 1px solid var(--rule); }
+table.wallets { width: 100%; border-collapse: collapse; min-width: 860px; }
+table.wallets th {
+  text-align: left; font-family: var(--font-cond); font-weight: 700;
+  font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-3); padding: 11px 14px;
+  background: var(--ground-2); border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+table.wallets th.num, table.wallets td.num { text-align: right; }
+table.wallets td {
+  padding: 13px 14px; border-bottom: 1px solid var(--rule);
+  font-size: 13.5px; color: var(--ink-2); vertical-align: top;
+  background: var(--surface);
+}
+table.wallets tbody tr:hover td { background: var(--surface-2); }
+table.wallets tbody tr:last-child td { border-bottom: 0; }
+
+.wg {
+  display: inline-block; width: 3px; height: 12px;
+  margin-right: 9px; vertical-align: -1px; border-radius: 1px;
+  background: var(--lock-5);
+}
+.wg-vault    { background: var(--lock-3); }
+.wg-treasury { background: var(--lock-1); }
+.wg-vesting  { background: var(--lock-2); }
+.wg-bridge   { background: var(--c-bridge); }
+.wg-burn     { background: var(--c-burn); }
+.wg-ops      { background: var(--lock-5); }
+
+.w-note { font-size: 11.5px; color: var(--ink-4); margin-top: 3px; padding-left: 12px; }
+.w-holder { color: var(--ink-3); font-size: 12.5px; white-space: nowrap; }
+.w-addr { font-size: 12px; white-space: nowrap; }
+.w-addr .ph {
+  color: var(--ink-4); border-bottom: 1px dashed var(--rule-2);
+}
+
+.tag {
+  display: inline-block; font-family: var(--font-mono); font-size: 10.5px;
+  padding: 2px 7px; border-radius: 2px; white-space: nowrap;
+}
+.tag-yes  { background: var(--circ-wash); color: var(--c-circ-ink); }
+.tag-no   { background: var(--locked-wash); color: var(--c-locked-ink); }
+.tag-burn { background: var(--burn-wash); color: var(--c-burn-ink); }
+
+.table-sum { margin-top: 10px; font-size: 11.5px; color: var(--ink-4); }
+
+/* ---------------- Methodology ---------------- */
+.method-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 1px; background: var(--rule); border: 1px solid var(--rule);
+}
+.method { background: var(--surface); padding: 22px; }
+.method h3 {
+  font-family: var(--font-cond); font-weight: 700; font-size: 13px;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--c-circ-ink);
+  margin: 0 0 12px;
+}
+.method p { margin: 0 0 10px; font-size: 13.5px; color: var(--ink-3); }
+.method p:last-child { margin-bottom: 0; }
+.method b { color: var(--ink); }
+.formula {
+  background: var(--ground-2); border-left: 2px solid var(--c-circ-ink);
+  padding: 10px 13px; font-size: 13.5px; color: var(--ink);
+  margin: 0 0 12px; overflow-x: auto;
+}
+ul.kv { list-style: none; margin: 0 0 12px; padding: 0; }
+ul.kv li {
+  display: flex; gap: 12px; align-items: baseline;
+  padding: 6px 0; border-bottom: 1px solid var(--rule); font-size: 12.5px;
+}
+ul.kv li span { color: var(--ink-4); flex: none; min-width: 78px; }
+ul.kv li b {
+  color: var(--ink-2); font-weight: 400; font-size: 11.5px;
+  word-break: break-all;
+}
+
+/* ---------------- Footer ---------------- */
+.foot { padding: 34px 0 60px; background: var(--ground-2); }
+.foot-in {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 26px;
+}
+.foot-wide { grid-column: span 2; }
+.foot-k {
+  font-family: var(--font-cond); font-weight: 700; font-size: 11px;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--ink-4);
+  margin-bottom: 7px;
+}
+.foot-block { font-size: 12.5px; color: var(--ink-3); }
+.foot-block p { margin: 0; max-width: 62ch; }
+.foot-block b { color: var(--ink-2); }
+.freshness {
+  display: inline-block; font-family: var(--font-mono); font-size: 11px;
+  padding: 3px 9px; border-radius: 2px; letter-spacing: .08em;
+}
+.freshness.is-fresh { background: var(--circ-wash); color: var(--c-circ-ink); }
+.freshness.is-stale { background: var(--burn-wash); color: var(--c-burn-ink); }
+
+/* ---------------- Theme toggle ---------------- */
+.topbar-right { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.theme-btn {
+  flex: none;
+  width: 34px; height: 30px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--ink-3);
+  border: 1px solid var(--rule-2); border-radius: 2px;
+  cursor: pointer; font-size: 14px; line-height: 1;
+  transition: color var(--t-fast, .12s), border-color var(--t-fast, .12s);
+}
+.theme-btn:hover { color: var(--ink); border-color: var(--ink-4); }
+
+/* Of the icon set, show only the one that matches the current setting */
+.theme-ico { display: none; }
+:root[data-theme-setting="light"] .theme-ico[data-ico="light"],
+:root[data-theme-setting="dark"]  .theme-ico[data-ico="dark"] { display: inline; }
+/* Keep one icon visible even in the unstamped state (JS off) */
+/* Before the script has run — the default is light */
+:root:not([data-theme-setting]) .theme-ico[data-ico="light"] { display: inline; }
+
+/* ---------------- Swapping the two chart variants ---------------- */
+/* The narrow-screen SVG has a smaller viewBox width, so the same text comes out
+   relatively larger. Both variants sit in the HTML, so the one that fits the screen
+   width shows up without JS. */
+svg.is-wide   { display: block; }
+svg.is-narrow { display: none; }
+svg.spark     { display: block; }
+@media (max-width: 720px) {
+  svg.is-wide   { display: none; }
+  svg.is-narrow { display: block; }
+}
+
+/* In light mode a saturated fill gets lost against white, so give it a border */
+.catbar { border: 1px solid var(--rule-2); }
+.catbar-seg { box-shadow: inset 0 0 0 1px var(--seg-edge); }
+
+/* ---------------- Responsive ---------------- */
+@media (max-width: 1000px) {
+  .bridge-grid { grid-template-columns: 1fr; }
+  .foot-wide { grid-column: span 1; }
+}
+
+@media (max-width: 720px) {
+  .band { padding: 40px 0; }
+  .hero { padding: 40px 0 36px; }
+  .sec-head { margin-bottom: 20px; }
+  .sec-head h2 { font-size: 23px; }
+  .sec-head-sub { margin-top: 34px; }
+  .sec-head-row { align-items: flex-start; }
+
+  /* Stacking the KPIs in one column only makes the scroll longer. 2x2 reads at a glance. */
+  .tiles { grid-template-columns: repeat(2, 1fr); }
+  .tile { padding: 14px 14px 16px; }
+  .tile-v { font-size: 19px; }
+
+  /* The equation goes 2x2, with the operator attached in front of each cell */
+  .equation { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 6px; align-items: stretch; }
+  .eq-term { min-width: 0; padding: 9px 11px; }
+  .eq-v { font-size: 15px; }
+  .eq-op { font-size: 15px; }
+
+  .catlegend { grid-template-columns: 1fr; }
+
+  /* Leave the table scrolling sideways and nobody on mobile looks at the right half.
+     Stand each row up as a card so every value reads vertically. */
+  .table-scroll { overflow-x: visible; border: 0; }
+  table.wallets, table.wallets tbody, table.wallets tr, table.wallets td { display: block; width: 100%; }
+  /* Flattening tr to block above overrides [hidden]'s display:none — that kills the filter */
+  table.wallets tr[hidden] { display: none; }
+  table.wallets { min-width: 0; }
+  table.wallets thead { display: none; }
+  table.wallets tbody tr {
+    border: 1px solid var(--rule); background: var(--surface);
+    padding: 14px; margin-bottom: 10px;
+  }
+  table.wallets tbody tr:hover td { background: transparent; }
+  table.wallets td {
+    border: 0; padding: 3px 0; background: transparent;
+    display: flex; align-items: baseline; gap: 10px;
+    flex-wrap: wrap; min-width: 0; overflow-wrap: anywhere;
+  }
+  table.wallets td::before {
+    content: attr(data-label);
+    flex: none; min-width: 84px;
+    font-family: var(--font-cond); font-weight: 700; font-size: 11px;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--ink-4);
+  }
+  /* The first cell stands as a heading with no label. Hook it on data-cell, not on the
+     locale string — keyed to the Korean "category" label it would not apply on the
+     English page or the addresses tab. */
+  table.wallets td[data-cell="title"] {
+    display: block; font-size: 15px; color: var(--ink);
+    padding-bottom: 8px; margin-bottom: 6px; border-bottom: 1px solid var(--rule);
+  }
+  table.wallets td[data-cell="title"]::before { content: none; }
+  table.wallets td.num { justify-content: flex-start; }
+  .w-note { padding-left: 12px; }
+}
+
+@media (max-width: 620px) {
+  .topbar-in { height: auto; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+  .topbar-right { width: 100%; order: 3; }
+  .pill { flex: 1; font-size: 10.5px; padding: 6px 9px; gap: 6px; }
+  /* This screen is tapped with a finger, so keep the minimum touch target (about 40px) */
+  .theme-btn { width: 40px; height: 40px; font-size: 15px; }
+  .chips button { min-height: 40px; padding: 6px 14px; }
+
+  .notice { text-align: left; }
+  .hero-scope { font-size: 13px; }
+  .method { padding: 18px; }
+  .foot-in { gap: 20px; }
+}
+
+@media (max-width: 400px) {
+  /* When the equation's 4 cells are cramped even at 2x2, one per row */
+  .equation { grid-template-columns: auto 1fr; }
+  .tiles { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ---------------- Time-series provenance legend ---------------- */
+.provenance {
+  list-style: none; margin: 16px 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 10px 26px;
+}
+.provenance li {
+  display: grid; grid-template-columns: 26px auto auto; gap: 2px 9px;
+  align-items: center;
+  padding: 9px 0; border-top: 1px solid var(--rule);
+  font-size: 13px; color: var(--ink-2);
+}
+.provenance b { font-weight: 600; color: var(--ink); }
+.provenance .mono { color: var(--ink-3); font-size: 12px; }
+.pv-line { height: 2px; border-radius: 1px; }
+.pv-uploaded {
+  background: repeating-linear-gradient(90deg,
+    var(--c-circ-ink) 0 6px, transparent 6px 9px);
+  opacity: .75;
+}
+.pv-measured { background: var(--c-circ-ink); height: 2.5px; }
+.pv-note {
+  grid-column: 2 / -1; font-size: 12px; color: var(--ink-4); line-height: 1.55;
+}
+.pv-note b { color: var(--c-burn-ink); }
+.ax-note.handover { fill: var(--ink-2); }
+
+/* ---------------- i18n / language switch ---------------- */
+/* Preview warning. Sits above everything so it is read before any number is.
+   Small, but the red clears AA on both grounds — it must not read as decoration. */
+/* Faded out for the duration of a range zoom. Rewriting dates and the gap figure
+   on every frame reads as flicker, so they leave and come back instead. */
+.chart-area .ax-dates,
+.chart-area .gap-mark { transition: opacity .2s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .chart-area .ax-dates,
+  .chart-area .gap-mark { transition: none; }
+}
+
+.preview-bar {
+  margin: 0;
+  padding: 7px 20px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border-bottom: 1px solid var(--danger-line);
+}
+
+.lang-btn {
+  flex: none; height: 30px; padding: 0 11px;
+  display: inline-flex; align-items: center;
+  font-family: var(--font-mono); font-size: 11.5px;
+  color: var(--ink-3); background: transparent;
+  border: 1px solid var(--rule-2); border-radius: 2px;
+  text-decoration: none; white-space: nowrap;
+}
+.lang-btn:hover { color: var(--ink); border-color: var(--ink-4); text-decoration: none; }
+
+/* ---------------- Hero secondary figures ---------------- */
+/* A definition list instead of a sentence. This is where "excluding …, it is …" became label + value. */
+.hero-alt {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;
+  margin: 12px 0 0; padding: 8px 0 0;
+  border-top: 1px solid var(--rule);
+  max-width: 560px;
+}
+.hero-alt dt {
+  font-family: var(--font-cond); font-weight: 700; font-size: 12px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--c-locked-ink);
+}
+.hero-alt dd { margin: 0; font-size: 17px; color: var(--ink); }
+.hero-alt dd.dim { font-size: 13px; }
+
+/* ---------------- Chart legend ---------------- */
+/* Show how to read the graph with samples instead of spelling it out in a sentence. */
+.chart-key {
+  list-style: none; margin: 14px 0 0; padding: 10px 0 0;
+  border-top: 1px solid var(--rule);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px;
+  font-size: 12.5px; color: var(--ink-3);
+}
+.chart-key li { display: inline-flex; align-items: center; gap: 7px; }
+.chart-key b { color: var(--ink); font-weight: 500; }
+.chart-key .k-sep { width: 1px; height: 14px; background: var(--rule-2); padding: 0; }
+.k-line { width: 22px; height: 2px; flex: none; background: var(--c-circ-ink); }
+.k-line.k-thick { height: 2.5px; }
+.k-line.k-dashed {
+  background: repeating-linear-gradient(90deg, var(--c-circ-ink) 0 6px, transparent 6px 9px);
+  opacity: .75;
+}
+.k-line.k-dashcap {
+  background: repeating-linear-gradient(90deg, var(--ink-3) 0 5px, transparent 5px 9px);
+}
+.k-swatch { width: 14px; height: 12px; flex: none; border-radius: 1px; }
+.k-swatch.k-band { background: var(--c-locked); opacity: .28; }
+.k-warn { color: var(--c-burn-ink); }
+
+/* ---------------- Methodology mini table ---------------- */
+/* This took the place of two scope-warning paragraphs. */
+table.mini { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.mini th {
+  text-align: left; font-family: var(--font-cond); font-weight: 700;
+  font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-4); padding: 0 8px 7px 0; border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+table.mini th.c, table.mini td.c { text-align: center; width: 1%; white-space: nowrap; }
+table.mini td {
+  padding: 8px 8px 8px 0; border-bottom: 1px solid var(--rule); color: var(--ink-2);
+}
+table.mini tr:last-child td { border-bottom: 0; }
+table.mini td.yes { color: var(--c-circ-ink); font-weight: 700; }
+table.mini td.no  { color: var(--ink-4); }
+table.mini td.dim { color: var(--ink-4); }
+table.mini td.mono { font-size: 11.5px; }
+
+.method .formula { margin-bottom: 0; }
+.band > .wrap > .formula { margin-bottom: 22px; }
+
+@media (max-width: 620px) {
+  .lang-btn { height: 40px; padding: 0 12px; }
+  .hero-alt { max-width: none; }
+}
+
+/* ---------------- Segment hover card ---------------- */
+/* Color alone does not say what it is. Attach name, amount, share and status to the color. */
+.seg-card {
+  position: absolute; z-index: 40; top: 0;
+  min-width: 190px; max-width: 300px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule-2);
+  box-shadow: var(--tip-shadow);
+  pointer-events: none;
+  opacity: 0; transform: translateY(4px);
+  transition: opacity .13s ease, transform .13s ease;
+}
+.seg-card[data-open] { opacity: 1; transform: translateY(0); }
+.seg-card-head {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13.5px; color: var(--ink); font-weight: 500;
+  line-height: 1.35;
+}
+.seg-card-head .sw { width: 10px; height: 10px; flex: none; border-radius: 2px; }
+.seg-card-val {
+  font-family: var(--font-mono); font-size: 17px; color: var(--ink);
+  margin-top: 7px; line-height: 1.2;
+}
+.seg-card-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 6px 12px; margin-top: 5px; flex-wrap: wrap;
+  font-size: 12px; color: var(--ink-4);
+}
+.seg-card-row > span { flex: none; }
+.seg-card-row b { min-width: 0; overflow-wrap: anywhere; }
+.seg-card-row b { color: var(--ink-2); font-weight: 400; font-family: var(--font-mono); }
+.seg-card .tag { margin-top: 8px; }
+
+/* ---------------- Theme transition ---------------- */
+/* data-theme-ready is attached after the first paint — turn it on before that and
+   the initial render flows in as an animation. The property list is kept narrow so
+   layout is never touched. */
+/* The whole selector is wrapped in :where() to bring specificity down to 0,0,0.
+   Leave [data-theme-ready] outside and that attribute selector counts the same as a
+   class (0,1,0), which ties with component transitions like .seg-card / .catbar-seg,
+   and this rule, coming later, wins. */
+:where([data-theme-ready]) :where(body, body *:not(.hover, .hover *)) {
+  transition-property: background-color, background-image, border-color, color, fill, stroke, box-shadow;
+  transition-duration: .30s;
+  transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+}
+
+/* A micro-interaction, just enough for the icon to turn slightly */
+.theme-btn .theme-ico { display: none; transition: transform .3s cubic-bezier(.4,0,.2,1); }
+[data-theme-ready] .theme-btn:active .theme-ico { transform: rotate(-25deg) scale(.9); }
+
+/* ---------------- Tabs ---------------- */
+.tabs { display: flex; gap: 2px; flex: 1; min-width: 0; margin-left: 6px; }
+.tab {
+  font-family: var(--font-cond); font-weight: 700; font-size: 14px;
+  letter-spacing: .03em;
+  padding: 6px 12px; border-radius: 2px;
+  color: var(--ink-4); text-decoration: none; white-space: nowrap;
+  border-bottom: 2px solid transparent;
+}
+.tab:hover { color: var(--ink); text-decoration: none; }
+.tab.is-on { color: var(--ink); border-bottom-color: var(--c-circ); }
+
+@media (max-width: 620px) {
+  /* flex-basis is what has to change — .tabs has flex:1, which means flex-basis:0%, so width:100% does nothing. */
+  .tabs { order: 2; flex-basis: 100%; margin-left: 0; }
+  .tab { flex: 1; text-align: center; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+}
+
+/* ---------------- Controlled address table ---------------- */
+.control-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.cat-chip {
+  display: inline-block; margin-left: 8px;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--ink-4); border: 1px solid var(--rule-2);
+  padding: 1px 5px; border-radius: 2px; vertical-align: 1px;
+}
+.tag-ct  { background: var(--bridge-wash); color: var(--c-bridge-ink); }
+.tag-eoa { background: rgba(194, 77, 255, .12); color: var(--purple-ink); }
+.tag-std { background: rgba(255, 118, 255, .12); color: var(--pink-ink); }
+
+.chain-cell { font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+
+.addr-wrap { display: inline-flex; align-items: center; gap: 6px; }
+.copy-btn {
+  flex: none; width: 22px; height: 22px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--ink-4);
+  border: 1px solid var(--rule-2); border-radius: 2px;
+  cursor: pointer; font-size: 11px; padding: 0;
+}
+.copy-btn:hover { color: var(--ink); border-color: var(--ink-4); }
+.copy-btn.is-copied { color: var(--c-circ-ink); border-color: var(--c-circ-ink); }
+
+.token-cell { white-space: nowrap; }
+.tk-sym { margin-left: 6px; color: var(--ink-2); }
+.tk-sup { margin-left: 6px; font-size: 11px; }
+
+.addr-catbar { margin-top: 22px; }
+
+@media (max-width: 720px) {
+  .addresses tbody tr { padding: 14px; }
+  .copy-btn { width: 30px; height: 30px; font-size: 13px; }
+  .control-row { width: 100%; }
+  .control-row .chips { flex: 1; }
+  .control-row .chips button { flex: 1; }
+}
+
+/* ---------------- 3D pie ---------------- */
+/* A picture of one cylinder split into slices. Pie on the left + table-shaped legend on the right. */
+/* Keep a hidden view from eating a grid slot — it has to override .pie-wrap's
+   display, so the attribute selector raises specificity by one step. */
+.pie-wrap[hidden] { display: none; }
+
+/* Stack the chart on top and the legend below.
+   Side by side with vertical centering, the legend item count (10/6/4) changes every
+   time the view changes, which changes the row height, and the donut moves up and
+   down each time. */
+.pie-wrap {
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  gap: 18px;
+  position: relative;
+  isolation: isolate;
+}
+/* Since the leader lines were dropped the viewBox got narrower (712 → 468), so at the
+   same width the donut is much larger. Size it by width — height follows the viewBox
+   ratio. */
+.pie-wrap .chart-pie { width: 100%; max-width: 560px; }
+/* On wide screens the legend flows into several columns. Stacked vertically only, the bottom gets too long. */
+.pie-legend { width: 100%; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+/* Glass only reads as glass when there is light behind it. Lay a soft glow underneath. */
+.pie-wrap::before {
+  content: ''; position: absolute; z-index: -1;
+  inset: -6% 0 -12% 0;   /* Overflowing left or right would widen the document */
+  background:
+    radial-gradient(46% 62% at 24% 44%, var(--glass-glow-a), transparent 72%),
+    radial-gradient(40% 56% at 60% 68%, var(--glass-glow-b), transparent 74%);
+  filter: blur(24px);
+  opacity: .7;
+  pointer-events: none;
+}
+/* Glass stage — the bright surface the pie sits on.
+   Over pure black, lowering the opacity only gives "blur", never glass.
+   There has to be something behind for the show-through to be visible. */
+.chart-pie {
+  min-width: 0;
+  position: relative;
+  padding: 10px 12px 6px;
+  border-radius: 20px;
+  background:
+    radial-gradient(58% 74% at 30% 34%, var(--glass-glow-a), transparent 68%),
+    radial-gradient(52% 66% at 66% 72%, var(--glass-glow-b), transparent 70%),
+    linear-gradient(150deg, rgba(255,255,255,.10), rgba(255,255,255,0) 52%),
+    var(--glass-fill);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  overflow: hidden;
+}
+.chart-pie::after {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-hi) 26%, transparent 78%);
+  pointer-events: none;
+}
+
+/* The origin for rotation and scaling is the donut center. The SVG default origin is
+   the top-left of the viewBox, so left alone the slices fly off screen. --cx/--cy are
+   planted by the chart. */
+/* ── Opening screen ───────────────────────────────────────────────── */
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, .9fr);
+  gap: 28px 48px;
+  align-items: center;
+  margin-bottom: 32px;
+}
+.hero-title {
+  margin: 0 0 10px;
+  font-family: var(--font-cond);
+  font-size: clamp(28px, 4.2vw, 46px);
+  font-weight: 800;
+  letter-spacing: -.01em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+.hero-lede { margin: 0; max-width: 46ch; color: var(--ink-2); line-height: 1.6; }
+
+/* Where the NXPC coin mark sits. Held by aspect ratio so it grows with the screen
+   width — fixing only the height makes it flat on wide screens.
+   The disc is 720px, so the display size has to stay below half that to stay sharp
+   on retina. */
+.hero-art {
+  /* --coin-light / --coin-dark are set inline by the component (it needs the base path).
+     So the theme choice has to happen on this element too — from :root the two
+     variables are not visible. */
+  --coin: var(--coin-light);
+  margin: 0;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 260px;
+  /* Just one light source behind the coin. Put a box border around it and it looks framed. */
+  background:
+    var(--coin) center / contain no-repeat,
+    radial-gradient(closest-side, var(--coin-glow), transparent 72%) center / 82% 82% no-repeat;
+}
+:root[data-color-mode='dark'] .hero-art { --coin: var(--coin-dark); }
+
+@media (max-width: 760px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 20px; }
+  .hero-art { aspect-ratio: 16 / 10; min-height: 200px; }
+}
+
+/* ── Learn more ───────────────────────────────────────────────────── */
+.learn-links {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.learn-links a {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink); text-decoration: none;
+}
+.learn-links a:hover { border-color: var(--ink-4); background: var(--surface-2); }
+.learn-go { color: var(--ink-3); }
+
+.pie-slice {
+  transform-box: view-box;
+  transform-origin: var(--cx, 50%) var(--cy, 50%);
+}
+.pie-slice {
+  cursor: pointer;
+  transition: transform .22s cubic-bezier(.2, .8, .3, 1), filter .18s;
+}
+/* On hover the slice pulls out slightly along its bisector */
+.pie-slice:hover,
+.pie-slice.is-active,
+.pie-slice.is-paired { transform: translate(var(--ex-x), var(--ex-y)); filter: brightness(1.08); }
+.pie-slice:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* The cut faces — while the ring is closed they have to hide between neighboring
+   slices. Revealing them only when a slice pulls out shows the thickness while keeping
+   the ring clean the rest of the time. */
+.pie-cap, .pie-socket { opacity: 0; transition: opacity .2s ease; }
+.pie-slice:hover .pie-cap,
+.pie-slice.is-active .pie-cap,
+.pie-slice.is-paired .pie-cap,
+.pie-socket.is-paired { opacity: 1; }
+/* A slice absent from this view — it keeps its place but takes no pointer events */
+.pie-slice[data-empty] { pointer-events: none; }
+
+/* Paint the slices opaque and the same gray floats up as silver in dark. Damp it per theme. */
+.donut-wash { fill: var(--donut-wash); }
+.donut-seam line { stroke: var(--donut-seam); stroke-width: 1; }
+/* Variant that also covers the inflated outline — the width is given inline by the slice */
+.donut-wash-e {
+  fill: var(--donut-wash); stroke: var(--donut-wash);
+  stroke-linejoin: round; stroke-linecap: round;
+}
+
+/* Hide the labels during the transition — the angles change every frame, so the text never lands right */
+.pie.is-morphing .pie-label-g { opacity: 0; }
+.pie .pie-label-g { transition: opacity .28s ease; }
+/* While the transition animation runs, keep the slices from popping out on hover */
+.pie.is-morphing .pie-slice { transition: none; }
+
+/* Entrance — the base settles first, then the slices unfold in order from the center
+   outward. No end state is written, so the hover transform is still alive after the
+   animation. */
+@media (prefers-reduced-motion: no-preference) {
+  .pie-slice {
+    animation: donut-in .66s cubic-bezier(.22, 1, .3, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 62ms + 90ms);
+  }
+  /* Once the view has been switched once, the morph takes over the staging — it does not unfold from the start again */
+  [data-switched] .pie-slice { animation: none; }
+  @keyframes donut-in {
+    from {
+      transform:
+        rotate(-16deg)
+        translate(calc(var(--ex-x) * -2.6), calc(var(--ex-y) * -2.6))
+        scale(.9);
+      opacity: 0;
+    }
+  }
+}
+
+.pie-pct {
+  font-family: var(--font-cond); font-weight: 800; font-size: 20px;
+  letter-spacing: .01em; fill: var(--pie-label);
+}
+/* The halo color follows the theme — the slices are translucent, so the effective ground differs per theme */
+.pie-halo { flood-color: var(--pie-halo); flood-opacity: var(--pie-halo-a); }
+.pie-amt {
+  font-family: var(--font-mono); font-size: 11.5px; font-weight: 500;
+  fill: var(--pie-label); opacity: .84;
+}
+.pie-edge-hi { stroke: var(--pie-edge-hi); stroke-width: .7; }
+/* The structure behind, showing through the glass */
+
+/* ---- Legend: frosted glass panel ---- */
+.pie-legend { list-style: none; margin: 0; padding: 0; min-width: 0; display: grid; gap: 8px; }
+.pie-legend li {
+  display: flex; align-items: stretch; gap: 12px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,0) 46%),
+    var(--glass-fill);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  position: relative; overflow: hidden;
+}
+/* A thin sheen on the top edge — the line where the glass thickness shows */
+.pie-legend li::after {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-hi) 22%, transparent 72%);
+  pointer-events: none;
+}
+
+.pl-bar {
+  flex: none; width: 4px; border-radius: 2px;
+  background: var(--pl-color, var(--ink-4));
+  box-shadow: 0 0 10px 0 var(--pl-color, transparent);
+}
+.pl-bar-none { background: transparent; box-shadow: inset 0 0 0 1px var(--rule-2); }
+
+.pl-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.pl-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pl-label {
+  font-family: var(--font-cond); font-weight: 700; font-size: 14.5px;
+  letter-spacing: .02em; color: var(--ink-2);
+}
+.pl-pct { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.pl-val { font-size: 17px; color: var(--ink); line-height: 1.15; }
+
+/* A thin share bar under the value — the size order is visible without reading the table */
+.pl-track {
+  height: 3px; border-radius: 2px; background: var(--glass-line);
+  overflow: hidden; margin-top: 3px;
+}
+.pl-fill {
+  display: block; height: 100%; width: var(--pl-share, 0%);
+  min-width: 3px;   /* so even 1.23% still leaves a mark */
+  background: linear-gradient(90deg, var(--pl-color), color-mix(in oklab, var(--pl-color) 55%, transparent));
+  border-radius: 2px;
+}
+
+.pl-item { cursor: default; transition: background .18s, border-color .18s, transform .18s; }
+.pl-item:hover, .pl-item.is-paired, .pl-item.is-active {
+  border-color: color-mix(in oklab, var(--pl-color, var(--ink-3)) 55%, transparent);
+  transform: translateX(2px);
+}
+.pl-item:hover .pl-label,
+.pl-item.is-paired .pl-label { color: var(--ink); }
+
+.pl-total { background: transparent; border-style: dashed; backdrop-filter: none; }
+.pl-total::after { content: none; }
+.pl-total .pl-label, .pl-total .pl-val { color: var(--ink); }
+
+@media (max-width: 860px) {
+  .pie-wrap { gap: 10px; }
+  .pie-legend { grid-template-columns: 1fr; }
+}
+
+/* ---------------- Flow (Sankey) chart ---------------- */
+
+.fl-link { transition: opacity .16s; opacity: .82; cursor: pointer; }
+.fl-link:hover, .fl-link.is-active { opacity: 1; }
+
+.fl-node, .fl-card { cursor: pointer; transition: opacity .16s; }
+.fl-node:hover, .fl-card:hover,
+.fl-node.is-active, .fl-card.is-active { opacity: .84; }
+.fl-node:focus-visible, .fl-card:focus-visible,
+.fl-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.fl-label {
+  font-family: var(--font-cond); font-weight: 700; font-size: 14px;
+  letter-spacing: .03em; fill: var(--ink-2);
+}
+.fl-val { font-family: var(--font-mono); font-size: 15px; fill: var(--ink); }
+.fl-pct { font-family: var(--font-mono); font-size: 11.5px; fill: var(--ink-4); }
+
+/* The hub is decoration — if it eats pointer events, the ribbon under it never gets hover. */
+.fl-hub { pointer-events: none; }
+.fl-hub-bg { fill: var(--surface); stroke: var(--rule-2); stroke-width: 1; }
+.fl-hub-k {
+  font-family: var(--font-cond); font-weight: 700; font-size: 11px;
+  letter-spacing: .1em; text-transform: uppercase; fill: var(--ink-4);
+}
+.fl-hub-v { font-family: var(--font-mono); font-size: 24px; fill: var(--ink); }
+.fl-hub-s { font-family: var(--font-mono); font-size: 11.5px; fill: var(--ink-3); }
+
+/* Card-shaped nodes */
+.fc-label {
+  font-family: var(--font-cond); font-weight: 700; font-size: 12.5px;
+  letter-spacing: .02em; fill: var(--ink-2);
+}
+.fc-val { font-family: var(--font-mono); font-size: 14px; fill: var(--ink); }
+.fc-pct { font-family: var(--font-mono); font-size: 10.5px; fill: var(--ink-4); }
+
+/* Period summary */
+
+@media (max-width: 720px) {
+}
+/* Narrow-screen flow labels — they sit on top of the band, so a bit smaller */
+svg.flow-period.is-narrow .fl-label { font-size: 12.5px; }
+svg.flow-period.is-narrow .fl-val { font-size: 12px; }
+/* Narrow-screen cards — so a 13-digit amount does not overflow the card width */
+svg.flow-columns.is-narrow .fc-label { font-size: 11.5px; }
+svg.flow-columns.is-narrow .fc-val { font-size: 12px; }
+svg.flow-columns.is-narrow .fc-pct { font-size: 10px; }
+
+/* Flow chart — column headers and ribbon names */
+.fl-head {
+  font-family: var(--font-cond); font-weight: 700; font-size: 11px;
+  letter-spacing: .14em; text-transform: uppercase; fill: var(--ink-4);
+}
+.fl-head-arrow { letter-spacing: 0; font-size: 13px; fill: var(--ink-3); }
+.fl-name {
+  font-family: var(--font-cond); font-weight: 700; font-size: 12.5px;
+  letter-spacing: .06em; text-transform: uppercase;
+  fill: var(--on-color); opacity: .78;
+}

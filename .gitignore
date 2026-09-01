@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.astro/
+_legacy/
+# scripts/scan-balances.mjs writes this — a one-off working file, not a record
+scan-result.json

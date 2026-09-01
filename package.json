@@ -1,0 +1,25 @@
+{
+  "name": "nxpc-supply",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "collect": "node scripts/collect.mjs",
+    "backfill": "node scripts/backfill.mjs"
+  },
+  "dependencies": {
+    "astro": "^7.2.6",
+    "viem": "^2.55.19",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/node": "^26.3.0",
+    "typescript": "^5.9.0"
+  }
+}

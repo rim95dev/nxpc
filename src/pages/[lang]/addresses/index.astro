@@ -1,0 +1,11 @@
+---
+import AddressView from '../../../components/AddressView.astro';
+import { LANGS, DEFAULT_LANG, type Lang } from '../../../i18n';
+
+export function getStaticPaths() {
+  return LANGS.filter((l) => l !== DEFAULT_LANG).map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+---
+<AddressView lang={lang} />

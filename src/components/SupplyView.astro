@@ -1,0 +1,834 @@
+---
+import Site from '../layouts/Site.astro';
+import { buildPageData, TOTAL_ISSUED } from '../lib/supply';
+import { localizeWallets, PLACEHOLDER_COUNT, POLICY_TIERS, TIERS, isPolicyDeduction, type Tier } from '../lib/wallets';
+import { localizeChains } from '../lib/chains';
+import { lastDays } from '../lib/window';
+import { domainOf } from '../lib/trend';
+import type { TierItem } from '../lib/model';
+import { RPC_URL, henesys } from '../lib/chain';
+import { areaChart, categoryBar, pie3d, sparkline, type PieSlice, type Segment } from '../lib/charts';
+import { createFmt } from '../lib/format';
+import { dict, type Lang } from '../i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+const t = dict(lang);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+/* Color disc in light, black disc in dark. Left as background images the browser
+   fetches only the one matching the theme — two stacked hidden imgs fetch both. */
+const coin = `--coin-light:url("${base}/nxpc-coin.webp");--coin-dark:url("${base}/nxpc-coin-black.webp")`;
+const F = createFmt(lang);
+const ctx = { fmt: F, t: t.chart };
+
+// Read the current state through Multicall3 at build time → the numbers are baked into the HTML.
+const data = await buildPageData();
+const s = data.supply;
+const head = data.snapshot.head;
+
+const wallets = localizeWallets(lang);
+const chains = localizeChains(lang);
+const labelOf = new Map<string, string>([
+  ...wallets.map((w) => [w.id, w.label] as const),
+  ...Object.entries(t.tier) as [string, string][],
+]);
+const holderOf = new Map<string, string>(wallets.map((w) => [w.id, w.holder]));
+
+// Map the four MSU colors onto the four states of NXPC.
+// Non-circulating has several buckets, so one purple family is split into steps.
+const LOCK_RAMP = ['var(--lock-1)', 'var(--lock-2)', 'var(--lock-3)', 'var(--lock-4)', 'var(--lock-5)'];
+const lockIndex = new Map<string, number>(s.buckets.map((b, i) => [b.id as string, i]));
+function colorFor(id: string): string {
+  if (id === 'burn') return 'var(--c-burn)';
+  if (id === 'l1-bridge-lock') return 'var(--c-bridge)';
+  if (id === 'bridge') return 'var(--c-bridge)';
+  const i = lockIndex.get(id);
+  if (i === undefined) return 'var(--c-circ)';
+  /* Don't take the ramp in order from the front; sweep it wide to match the bucket count.
+     Two neighbouring steps read as the same gray through the translucent glass. */
+  const n = s.buckets.length;
+  const step = n <= 1 ? 0 : Math.floor((LOCK_RAMP.length - 1) / (n - 1));
+  return LOCK_RAMP[Math.min(i * step, LOCK_RAMP.length - 1)]!;
+}
+
+/* Same order as the deduction steps. The first POLICY_TIERS of them come out under
+   both standards; the rest come out only under the issuer-control standard. */
+/* The color is the classification.
+     Steps the policy removes (non-circulating, burn) → gray, charcoal
+     Steps that make up circulating supply            → the MSU four-color family
+   Order them so neighbouring donut slices land on different colors — bunching one
+   family together makes a slice indistinguishable from its neighbour through the glass. */
+const TIER_COLOR: Record<string, string> = {
+  // Non-circulating, burn
+  burn: 'var(--c-burn)',
+  locked: 'var(--lock-1)',
+  team: 'var(--lock-4)',
+  fusion: 'var(--lock-2)',
+  // Circulating composition
+  bridge: 'var(--blue)',
+  treasury: 'var(--purple)',
+  wrapper: 'var(--mint-2)',
+  ecosystem: 'var(--pink)',
+  ops: 'var(--blue-2)',
+};
+const DEDUCTIONS = TIERS.filter((x) => x !== 'circulating');
+const tierColor = (tier: Tier) => TIER_COLOR[tier] ?? 'var(--c-circ)';
+
+const rollOf = (tier: Tier) => s.rolls.find((r) => r.tier === tier)!;
+/* The donut and the category bar draw the same breakdown as the ladder.
+   Nine deduction steps + the free float left over = 100% of total issued.
+   Keep the same order as the ladder — if the graph and the table run in different
+   orders the eye cannot match them up. */
+const itemsOf = (tier: Tier) =>
+  rollOf(tier).items.map((i) => labelOf.get(i.id) ?? i.id).join(' · ');
+
+const segments: Segment[] = [
+  ...DEDUCTIONS.map((tier): Segment => ({
+    id: tier,
+    label: t.tier[tier],
+    value: rollOf(tier).value,
+    color: tierColor(tier),
+    sub: itemsOf(tier),
+    subLabel: t.seg.items,
+    tag: tier === 'burn'
+      ? t.table.tagBurned
+      : isPolicyDeduction(tier) ? t.table.tagExcluded : t.table.tagCounted,
+    tagKind: tier === 'burn' ? 'burn' : isPolicyDeduction(tier) ? 'no' : 'yes',
+  })),
+  {
+    id: 'strict',
+    label: t.term.freeFloatHenesys,
+    value: s.strictHenesys,
+    color: 'var(--c-circ)',
+    sub: s.attributed.map((a) => labelOf.get(a.id) ?? a.id).join(' · '),
+    subLabel: t.seg.attributed,
+    tag: t.table.tagCounted,
+    tagKind: 'yes',
+  },
+];
+
+/* Free float per chain. Henesys is live, the rest come from the document. */
+const chainSegments: Segment[] = [
+  ...chains.map((c): Segment => ({
+    id: `chain-${c.id}`, label: c.label, value: c.circulating,
+    color: c.id === 'avalanche' ? 'var(--c-bridge)' : c.id === 'bnb' ? 'var(--lock-2)' : 'var(--lock-4)',
+    sub: c.note, subLabel: t.seg.chainNote, tag: t.seg.fromDoc, tagKind: 'no',
+  })),
+  {
+    id: 'chain-henesys', label: 'Henesys', value: s.strictHenesys, color: 'var(--c-circ)',
+    sub: s.attributed.map((a) => labelOf.get(a.id) ?? a.id).join(' · '),
+    subLabel: t.seg.attributed, tag: t.table.tagCounted, tagKind: 'yes',
+  },
+];
+
+const equation = [
+  { k: t.term.maxSupply, v: s.totalIssued, cls: 'eq-total', anchor: '#method', op: '' },
+  { k: t.term.burned, v: s.burned, cls: 'eq-burn', anchor: '#wallets', op: '−' },
+  { k: t.term.nonCirculating, v: s.nonCirculating, cls: 'eq-non', anchor: '#wallets', op: '−' },
+  { k: t.term.circulating, v: s.circulating, cls: 'eq-circ', anchor: '#supply', op: '=' },
+];
+
+const tiles = [
+  { k: t.term.maxSupply, v: s.totalIssued, sub: t.tile.fixedCap, color: 'var(--ink-2)' },
+  { k: t.term.circulating, v: s.circulating, sub: F.pct(s.circulating / s.totalIssued), color: 'var(--c-circ)' },
+  { k: t.term.nonCirculating, v: s.nonCirculating, sub: F.pct(s.nonCirculating / s.totalIssued), color: 'var(--c-locked)' },
+  { k: t.term.burned, v: s.burned, sub: F.pct(s.burned / s.totalIssued), color: 'var(--c-burn)' },
+];
+
+// One cylinder — total issued — splits into three pieces. The sum is total issued.
+/* The pie uses the same split as the category bar below — with a different yardstick
+   you cannot find the item you see in the legend anywhere in the graph.
+   The second view is the inside of circulating supply with non-circulating and burn
+   taken out, and the denominator becomes circulating supply as well. */
+interface PieView { key: 'all' | 'circ' | 'chain'; slices: PieSlice[]; denom: number; totalLabel: string }
+
+/* What sits inside the policy-basis circulating supply — the deduction steps the policy
+   does not remove, plus the free float left over. This view answers «how 224M ends up
+   as the circulating supply». */
+const insideCirculating = segments.filter(
+  (x) => x.id === 'strict' || !isPolicyDeduction(x.id as Tier),
+);
+
+/* Default view. The headline is «circulating supply», so show its composition first. */
+const DEFAULT_VIEW = 'circ';
+
+const pieViews: PieView[] = [
+  { key: 'all', slices: segments, denom: s.totalIssued, totalLabel: t.term.maxSupply },
+  { key: 'circ', slices: insideCirculating, denom: s.circulating, totalLabel: t.term.circulating },
+  { key: 'chain', slices: chainSegments, denom: s.strictGlobal, totalLabel: t.term.freeFloat },
+];
+
+/* Whatever the view, its SVG holds **every slice**. A slice the view does not have has
+   value 0 and draws nothing. If a slice that disappears on a view change were missing
+   from the target SVG altogether, there would be nowhere to play the «shrinking to 0»
+   motion, and start and end would come out the same. */
+const UNION: Segment[] = [...segments, ...chainSegments];
+const unionFor = (view: PieView): PieSlice[] => {
+  const has = new Map(view.slices.map((x) => [x.id, x.value]));
+  return UNION.map((x) => ({ ...x, value: has.get(x.id) ?? 0 }));
+};
+
+/* The 1Y chip ships already pressed, so the server draws the same window. The chart
+   is handed the whole series and a domain — the window is the domain, not a shorter
+   list of rows, so a chip press can zoom between the two instead of redrawing. */
+const DEFAULT_RANGE = 365;
+const ssrDomain = domainOf(lastDays(data.series.points, DEFAULT_RANGE));
+/* The source the range chips zoom over. Hand over the points the server baked as they
+   are — if the client recomputes them the two paths drift apart. */
+const seriesJson = JSON.stringify(data.series.points);
+---
+
+<Site lang={lang} page="supply" head={head} takenAt={data.snapshot.takenAt} rpcError={data.rpcError}>
+
+  <Fragment slot="notice">
+  {(data.balancesArePlaceholder || data.historyIsPlaceholder || data.series.hasPlaceholder) && (
+  <div class="notice" role="note">
+    <b>{t.notice.badge}</b>
+    {data.balancesArePlaceholder && <span class="mono">{t.notice.wallets} {PLACEHOLDER_COUNT}</span>}
+    {data.historyIsPlaceholder && <span class="mono">{t.notice.history}</span>}
+  </div>
+)}
+  </Fragment>
+
+
+  <section class="hero" id="supply">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1 class="hero-title">{t.page.title}</h1>
+        <p class="hero-lede">{t.page.lede}</p>
+      </div>
+      <figure class="hero-art" aria-hidden="true" style={coin} />
+    </div>
+
+    <div class="wrap">
+      <div class="eyebrow">{t.hero.eyebrow}</div>
+      <div class="hero-num">
+        <span class="mono">{F.full(s.circulating)}</span>
+        <span class="hero-unit">{t.hero.unit}</span>
+      </div>
+      <div class="hero-pct mono">{F.pct(s.circulating / s.totalIssued)} {t.hero.ofTotal}</div>
+
+      <dl class="hero-alt">
+        <dt>{t.hero.strict}</dt>
+        <dd class="mono">{F.full(s.strictGlobal)}</dd>
+        <dd class="mono dim">{F.pct(s.strictGlobal / s.totalIssued)}</dd>
+      </dl>
+
+      <div class="equation">
+        {equation.map((e) => (
+          <>
+            {e.op && <span class="eq-op">{e.op}</span>}
+            <a class={`eq-term ${e.cls}`} href={e.anchor}>
+              <span class="eq-k">{e.k}</span>
+              <span class="eq-v mono">{F.full(e.v)}</span>
+            </a>
+          </>
+        ))}
+      </div>
+    </div>
+  </section>
+
+
+
+  <section class="band">
+    <div class="wrap">
+      <div class="tiles">
+        {tiles.map((x) => (
+          <div class="tile" style={`--tile-accent:${x.color}`}>
+            <div class="tile-k">{x.k}</div>
+            <div class="tile-v mono">{F.full(x.v)}</div>
+            <div class="tile-s mono">{x.sub}</div>
+          </div>
+        ))}
+      </div>
+      {data.snapshot.failures.length > 0 && !data.balancesArePlaceholder && (
+        <p class="warn mono">{t.table.readFailed}: {data.snapshot.failures.join(', ')}</p>
+      )}
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap">
+      <div class="sec-head sec-head-row">
+        <h2>{t.section.breakdown}</h2>
+        <div id="pieModes" class="chips" role="group" aria-label={t.pieMode.label}>
+          <button data-pie-mode="all" aria-pressed="false">{t.pieMode.all}</button>
+          <button data-pie-mode="circ" aria-pressed="true">{t.pieMode.circOnly}</button>
+          <button data-pie-mode="chain" aria-pressed="false">{t.pieMode.byChain}</button>
+        </div>
+      </div>
+      {/* Bake both views and hide them — 'all' shows even without script. */}
+      <div id="pieViews" data-segs={UNION.map((x) => x.id).join(',')} hidden></div>
+      {pieViews.map((v) => (
+        <div
+          class="pie-wrap"
+          data-view={v.key}
+          data-values={UNION.map((x) => v.slices.find((y) => y.id === x.id)?.value ?? 0).join(',')}
+          hidden={v.key !== DEFAULT_VIEW}
+        >
+          <div class="chart chart-pie" set:html={
+            pie3d(unionFor(v), { ...ctx, uid: v.key })
+            + pie3d(unionFor(v), { ...ctx, uid: v.key, narrow: true })
+          } />
+          <ul class="pie-legend">
+            {v.slices.map((sl) => (
+              <li
+                class="pl-item"
+                data-seg={sl.id}
+                data-label={sl.label}
+                data-value={F.full(sl.value)}
+                data-pct={F.pct(sl.value / v.denom)}
+                data-color={sl.color}
+                data-sub={sl.sub}
+                data-sublabel={sl.subLabel}
+                data-tag={sl.tag}
+                data-tagkind={sl.tagKind}
+                style={`--pl-color:${sl.color};--pl-share:${((sl.value / v.denom) * 100).toFixed(3)}%`}
+              >
+                <span class="pl-bar" aria-hidden="true"></span>
+                <div class="pl-body">
+                  <div class="pl-top">
+                    <span class="pl-label">{sl.label}</span>
+                    <span class="pl-pct mono">{F.pct(sl.value / v.denom)}</span>
+                  </div>
+                  <div class="pl-val mono">{F.full(sl.value)}</div>
+                  <div class="pl-track" aria-hidden="true"><span class="pl-fill"></span></div>
+                </div>
+              </li>
+            ))}
+            <li class="pl-item pl-total">
+              <span class="pl-bar pl-bar-none" aria-hidden="true"></span>
+              <div class="pl-body">
+                <div class="pl-top">
+                  <span class="pl-label">{v.totalLabel}</span>
+                  <span class="pl-pct mono">100%</span>
+                </div>
+                <div class="pl-val mono">{F.full(v.denom)}</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      ))}
+
+      <div class="sec-head sec-head-sub">
+        <h3>{t.section.barCaption} · <span class="mono">{F.full(TOTAL_ISSUED)}</span></h3>
+      </div>
+      <div class="catbar-host" set:html={categoryBar(segments, s.totalIssued, { fmt: F })} />
+    </div>
+  </section>
+
+  <section class="band band-alt">
+    <div class="wrap">
+      <div class="sec-head sec-head-row">
+        <h2>{t.section.trend}</h2>
+        <div id="rangeChips" class="chips" role="group" aria-label={t.section.trend}>
+          <button data-range="30" aria-pressed="false">{t.range.d30}</button>
+          <button data-range="90" aria-pressed="false">{t.range.d90}</button>
+          <button data-range="365" aria-pressed="true">{t.range.y1}</button>
+          <button data-range="0" aria-pressed="false">{t.range.all}</button>
+        </div>
+      </div>
+
+      <div id="areaChart" class="chart chart-area" set:html={
+        areaChart(data.series.points, { ...ctx, domain: ssrDomain }) +
+        areaChart(data.series.points, { ...ctx, domain: ssrDomain, narrow: true })
+      } />
+      <script type="application/json" id="seriesData" set:html={seriesJson} is:inline />
+
+      <ul class="chart-key">
+        <li><span class="k-line k-solid"></span>{t.chart.legendCirculating}</li>
+        <li><span class="k-line k-dashcap"></span>{t.chart.legendCap}</li>
+        <li><span class="k-swatch k-band"></span>{t.chart.legendGap}</li>
+        <li class="k-sep"></li>
+        <li><span class="k-line k-dashed"></span>{t.chart.uploaded} <b class="mono">{data.series.historyCount}{t.chart.days}</b></li>
+        <li><span class="k-line k-solid k-thick"></span>{t.chart.daily} <b class="mono">{data.series.snapshotCount}{t.chart.days}</b></li>
+        {data.series.handoverDate && (
+          <li class="dim mono">{t.chart.handoverAt} {data.series.handoverDate}</li>
+        )}
+        {data.series.gapDays > 0 && (
+          <li class="k-warn mono">{t.chart.gapWarn} {data.series.gapDays}{t.chart.days}</li>
+        )}
+      </ul>
+    </div>
+  </section>
+
+  <section class="band" id="bridge">
+    <div class="wrap">
+      <div class="sec-head"><h2>{t.section.bridge}</h2></div>
+      <div class="bridge-grid">
+        <div class="bridge-main">
+          <div class="tile-k">{t.bridge.current}</div>
+          <div class="bridge-num"><span class="mono">{F.full(s.bridged)}</span> <span class="hero-unit">{t.hero.unit}</span></div>
+          <div class="tile-s mono">{F.pct(s.bridged / s.circulating)} {t.bridge.ofCirculating}</div>
+          <div class="spark" set:html={sparkline(lastDays(data.series.points, 180).map((r) => r.bridged), 'var(--c-bridge)', t.bridge.spark)} />
+          <div class="spark-cap">{t.bridge.spark}</div>
+        </div>
+
+        <div class="bridge-side">
+          <div class="chain-row">
+            <span class="chain-dot" style="background:var(--c-circ)"></span>
+            <div class="chain-meta">
+              <div class="chain-name">{t.bridge.l1}</div>
+              <div class="chain-sub">{t.bridge.l1Sub}</div>
+            </div>
+            <div class="chain-num">
+              <b class="mono">{F.full(s.onL1)}</b>
+              <span class="mono dim">{F.pct(s.onL1 / s.circulating)}</span>
+            </div>
+          </div>
+          <div class="chain-row">
+            <span class="chain-dot" style="background:var(--c-bridge)"></span>
+            <div class="chain-meta">
+              <div class="chain-name">{t.bridge.cchain}</div>
+              <div class="chain-sub">{t.bridge.cchainSub}</div>
+            </div>
+            <div class="chain-num">
+              <b class="mono">{F.full(s.bridged)}</b>
+              <span class="mono dim">{F.pct(s.bridged / s.circulating)}</span>
+            </div>
+          </div>
+          <div class="catbar-host catbar-host-tight" set:html={categoryBar([
+            { id: 'l1', label: t.bridge.l1, value: s.onL1, color: 'var(--c-circ)' },
+            { id: 'cchain', label: t.bridge.cchain, value: s.bridged, color: 'var(--c-bridge)' },
+          ], s.circulating, { fmt: F, legend: false })} />
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <section class="band band-alt" id="learn">
+    <div class="wrap">
+      <div class="sec-head"><h2>{t.learn.heading}</h2></div>
+      <ul class="learn-links">
+        {t.learn.links.map((x) => (
+          <li>
+            <a href={x.href} target="_blank" rel="noopener">
+              <span>{x.label}</span>
+              <span class="learn-go mono" aria-hidden="true">↗</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="band" id="method">
+    <div class="wrap">
+      <div class="sec-head"><h2>{t.section.method}</h2></div>
+
+      <p class="formula mono">{t.method.formula}</p>
+      <p class="formula formula-2 mono">{t.method.formulaStrict}</p>
+
+      <div class="method-grid">
+        <div class="method">
+          <ul class="kv">
+            <li><span>{t.method.endpoint}</span><b class="mono">{RPC_URL}</b></li>
+            <li><span>{t.method.chainId}</span><b class="mono">{henesys.id}</b></li>
+            <li><span>{t.method.multicall}</span><b class="mono">{henesys.contracts.multicall3.address}</b></li>
+            <li><span>{t.method.call}</span><b class="mono">{t.method.callValue}</b></li>
+            <li><span>{t.term.maxSupply}</span><b class="mono">{t.method.maxSupplyNote}</b></li>
+          </ul>
+        </div>
+
+        <div class="method">
+          <table class="mini">
+            <thead>
+              <tr>
+                <th>{t.method.scopeHead.bucket}</th>
+                <th class="c">{t.method.scopeHead.inTotal}</th>
+                <th class="c">{t.method.scopeHead.inCirculating}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* Writing the table by hand drifts from the registry — pull it from the same constant */}
+              {DEDUCTIONS.map((tier) => (
+                <tr>
+                  <td>{t.tier[tier]}</td>
+                  <td class="c no">—</td>
+                  <td class="c no">—</td>
+                </tr>
+              )).slice(0, POLICY_TIERS.length)}
+              {DEDUCTIONS.slice(POLICY_TIERS.length).map((tier) => (
+                <tr>
+                  <td>{t.tier[tier]}</td>
+                  <td class="c yes">✓</td>
+                  <td class="c no">—</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="method">
+          <table class="mini">
+            <thead>
+              <tr>
+                <th>{t.method.seriesHead.part}</th>
+                <th>{t.method.seriesHead.source}</th>
+                <th>{t.method.seriesHead.by}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>{t.method.series.past}</td><td class="mono">{t.method.series.pastSource}</td><td class="dim">{t.method.series.pastBy}</td></tr>
+              <tr><td>{t.method.series.now}</td><td class="mono">{t.method.series.nowSource}</td><td class="dim">{t.method.series.nowBy}</td></tr>
+              <tr><td>{t.method.series.future}</td><td class="mono">{t.method.series.futureSource}</td><td class="dim">{t.method.series.futureBy}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+</Site>
+
+<script>
+  import { areaChart } from '../lib/charts';
+  import { createFmt } from '../lib/format';
+  import { attachSegCard } from '../lib/segcard';
+  import * as D from '../lib/donut';
+  import { lastDays } from '../lib/window';
+  import { boxOf as trendBox, domainOf, geom } from '../lib/trend';
+  import type { SeriesPoint } from '../lib/series';
+  import type { Lang } from '../i18n';
+
+  const T = JSON.parse(document.getElementById('i18nData')!.textContent!);
+  const lang = (document.documentElement.lang || 'en') as Lang;
+  const F = createFmt(lang);
+  const ctx = { fmt: F, t: T.chart };
+
+/* ---------- Trend chart: range switching + tooltip ----------
+     Two copies of the chart are rendered together, one for wide screens and one for
+     narrow, and CSS shows only one. Coordinates are recomputed from each SVG's data-*
+     — the two copies have different viewBox widths. */
+  const host = document.getElementById('areaChart');
+  const raw = document.getElementById('seriesData')?.textContent;
+  const series: SeriesPoint[] = raw ? JSON.parse(raw) : [];
+  let tip: HTMLDivElement | null = null;
+
+  function attachHover(rows: SeriesPoint[]) {
+    if (!host) return;
+    if (!tip) {
+      tip = document.createElement('div');
+      tip.className = 'charttip';
+      tip.hidden = true;
+      host.style.position = 'relative';
+      host.appendChild(tip);
+    }
+
+    host.querySelectorAll<SVGSVGElement>('svg.area').forEach((svg) => {
+      const g = svg.querySelector('.hover') as SVGGElement | null;
+      const line = svg.querySelector('.hover-line') as SVGLineElement | null;
+      const dot = svg.querySelector('.hover-dot') as SVGCircleElement | null;
+      if (!g || !line || !dot) return;
+
+      const W = Number(svg.dataset.w);
+      const padL = Number(svg.dataset.padl), padR = Number(svg.dataset.padr);
+      const padT = Number(svg.dataset.padt), padB = Number(svg.dataset.padb);
+      const maxY = Number(svg.dataset.maxy);
+      const innerW = W - padL - padR;
+      const innerH = H0(svg);
+
+      const move = (clientX: number) => {
+        /* Read the window every time. The tween rewrites data-t0/t1, so caching it
+           would leave the crosshair pointing at the previous range. */
+        const d = { t0: Number(svg.dataset.t0), t1: Number(svg.dataset.t1) };
+        const box = svg.getBoundingClientRect();
+        const rel = ((clientX - box.left) / box.width) * W;
+        const at = d.t0 + ((rel - padL) / innerW) * (d.t1 - d.t0);
+        const r = nearest(rows, at);
+        if (!r) return;
+        const x = padL + ((r.t - d.t0) / (d.t1 - d.t0)) * innerW;
+        const y = padT + innerH - (r.circulating / maxY) * innerH;
+
+        g.setAttribute('opacity', '1');
+        line.setAttribute('x1', String(x));
+        line.setAttribute('x2', String(x));
+        dot.setAttribute('cx', String(x));
+        dot.setAttribute('cy', String(y));
+
+        tip!.hidden = false;
+        tip!.innerHTML =
+          `<div class="tip-date mono">${F.date(r.t)}</div>` +
+          `<div class="tip-row"><span class="sw" style="background:var(--c-circ)"></span>${T.term.circulating}<b class="mono">${F.full(r.circulating)}</b></div>` +
+          `<div class="tip-row"><span class="sw" style="background:var(--c-bridge)"></span>C-Chain<b class="mono">${F.full(r.bridged)}</b></div>` +
+          `<div class="tip-row"><span class="sw" style="background:var(--c-locked)"></span>${T.term.nonCirculating}<b class="mono">${F.full(r.totalIssued - r.burned - r.circulating)}</b></div>`;
+
+        const px = (x / W) * box.width;
+        tip!.style.left = `${Math.min(Math.max(px, 8), Math.max(8, box.width - 208))}px`;
+      };
+
+      const leave = () => { g.setAttribute('opacity', '0'); if (tip) tip.hidden = true; };
+      svg.addEventListener('mousemove', (ev) => move((ev as MouseEvent).clientX));
+      svg.addEventListener('mouseleave', leave);
+      svg.addEventListener('touchmove', (ev) => {
+        const p = (ev as TouchEvent).touches[0];
+        if (p) move(p.clientX);
+      }, { passive: true });
+      svg.addEventListener('touchend', leave, { passive: true });
+    });
+  }
+
+  const H0 = (svg: SVGSVGElement) =>
+    Number(svg.dataset.h) - Number(svg.dataset.padt) - Number(svg.dataset.padb);
+
+  /** The row closest in time to `at`. The series is ascending, so a scan is enough at this size. */
+  function nearest(rows: SeriesPoint[], at: number): SeriesPoint | null {
+    let best: SeriesPoint | null = null;
+    let gap = Infinity;
+    for (const r of rows) {
+      const g = Math.abs(r.t - at);
+      if (g < gap) { gap = g; best = r; }
+    }
+    return best;
+  }
+
+  /* ---------- Range zoom ----------
+     A chip does not swap in another chart. The rows never change; the domain does.
+     Every frame re-runs the same geom() the server used, so the curve rescales
+     continuously and the last frame lands exactly on a fresh server render.
+
+     Text is the exception. Dates and the gap figure would have to be rewritten on
+     every frame, which reads as flicker rather than motion, so those two groups
+     fade out for the duration and come back with the final values. */
+  const EASE = (u: number) => 1 - Math.pow(1 - u, 3);
+  const ZOOM_MS = 520;
+  const still = matchMedia('(prefers-reduced-motion: reduce)');
+
+  let domain = { t0: Number(series[0]?.t ?? 0), t1: Number(series[series.length - 1]?.t ?? 0) };
+  let zoom = 0;
+
+  function paintAt(d: { t0: number; t1: number }) {
+    host?.querySelectorAll<SVGSVGElement>('svg.area').forEach((svg) => {
+      const narrow = svg.classList.contains('is-narrow');
+      const b = trendBox(narrow, Number(svg.dataset.maxy));
+      const g = geom(series, b, d);
+      const set = (sel: string, attr: string, v: string) =>
+        svg.querySelector(sel)?.setAttribute(attr, v);
+      set('.gap-band', 'd', g.band);
+      set('.area-fill', 'd', g.area);
+      set('.line-dash', 'd', g.dashed);
+      set('.line-solid', 'd', g.solid);
+      if (g.handoverX !== null) {
+        const hx = g.handoverX;
+        set('.handover-line', 'x1', String(hx));
+        set('.handover-line', 'x2', String(hx));
+        const right = hx > b.padL + (b.W - b.padL - b.padR) * 0.66;
+        set('.handover-text', 'x', String(right ? hx - 7 : hx + 7));
+        set('.handover-text', 'text-anchor', right ? 'end' : 'start');
+      }
+      svg.dataset.t0 = String(d.t0);
+      svg.dataset.t1 = String(d.t1);
+    });
+  }
+
+  /** Redraws both copies at `d` — identical output to the build-time render. */
+  function settle(d: { t0: number; t1: number }) {
+    if (!host) return;
+    const keep = tip;
+    host.innerHTML =
+      areaChart(series, { ...ctx, domain: d }) +
+      areaChart(series, { ...ctx, domain: d, narrow: true });
+    if (keep) { keep.hidden = true; host.appendChild(keep); }
+    attachHover(series);
+  }
+
+  /** Brings the annotations back after a zoom — start at 0 so the CSS transition has something to run. */
+  function revealMarks() {
+    host?.querySelectorAll<SVGGElement>('.ax-dates, .gap-mark').forEach((g) => {
+      g.style.opacity = '0';
+      requestAnimationFrame(() => { g.style.opacity = ''; });
+    });
+  }
+
+  function render(range: number) {
+    if (!host || !series.length) return;
+    const target = domainOf(lastDays(series, range));
+    if (still.matches) { domain = target; settle(target); return; }
+
+    const from = { ...domain };
+    const t0 = performance.now();
+    cancelAnimationFrame(zoom);
+    host.querySelectorAll('.ax-dates, .gap-mark').forEach((g) =>
+      (g as SVGGElement).style.opacity = '0');
+    host.querySelectorAll<SVGGElement>('.hover').forEach((g) => g.setAttribute('opacity', '0'));
+    if (tip) tip.hidden = true;
+
+    const step = (now: number) => {
+      const u = Math.min(1, (now - t0) / ZOOM_MS);
+      const e = EASE(u);
+      domain = {
+        t0: from.t0 + (target.t0 - from.t0) * e,
+        t1: from.t1 + (target.t1 - from.t1) * e,
+      };
+      paintAt(domain);
+      if (u < 1) { zoom = requestAnimationFrame(step); return; }
+      domain = target;
+      settle(target);
+      revealMarks();
+    };
+    zoom = requestAnimationFrame(step);
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('#rangeChips button').forEach((b) => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#rangeChips button').forEach((x) =>
+        x.setAttribute('aria-pressed', String(x === b)));
+      render(Number(b.dataset.range));
+    });
+  });
+
+  /* The server drew the 1Y window, so start there — handing the full series to the
+     hover would put the crosshair on rows that are off screen. */
+  const first = host?.querySelector<SVGSVGElement>('svg.area');
+  if (first) domain = { t0: Number(first.dataset.t0), t1: Number(first.dataset.t1) };
+  attachHover(series);
+
+  /* ---------- Color segment hover card ----------
+     The cylinder bar, the legend and the waterfall bars use the same data-* contract,
+     so one function attaches to all of them. */
+  const segLabels = { ofTotal: T.seg.ofTotal, holder: T.seg.holder, status: T.seg.status };
+  document
+    .querySelectorAll<HTMLElement>('.catbar-host, .pie-wrap')
+    // In the circulating-only view the denominator is circulating supply, not total issued — the card's row name follows.
+    .forEach((h) => attachSegCard(h, h.dataset.view === 'circ'
+      ? { ...segLabels, ofTotal: T.seg.ofCirculating }
+      : segLabels));
+
+  /* ---------- Total issued composition: view switching ----------
+     An SVG is baked for every view, but swapping one straight in on a switch redraws the
+     donut from scratch. Instead the target SVG is **set up at the starting view's angles**
+     and animated across to its own — the slices that drop out disappear and the ones that
+     remain grow into their place.
+     The geometry uses the same donut.ts as the server render. Compute it in two places
+     and the slices jump the moment the transition ends. */
+  const pieModes = document.querySelectorAll<HTMLButtonElement>('#pieModes button');
+  const pieWraps = document.querySelectorAll<HTMLElement>('.pie-wrap[data-view]');
+  const pieHost = pieWraps[0]?.parentElement ?? null;
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+  /* Every view shares the slice order; the values differ per view (0 when absent).
+     The values printed in the legend are rounded, so don't use them — the geometry
+     jumps at the end of the transition. */
+  const SEGS = (document.getElementById('pieViews')?.dataset.segs ?? '').split(',');
+  const valuesOf = (view: string) =>
+    (document.querySelector<HTMLElement>(`.pie-wrap[data-view="${view}"]`)?.dataset.values ?? '')
+      .split(',').map(Number);
+
+  interface Box { cx: number; cy: number; rxOut: number; ryOut: number; hole: number; depth: number }
+  const boxOf = (svg: SVGElement): Box => {
+    const [cx, cy, rxOut, ryOut, hole, depth] = (svg.dataset.geom ?? '').split(',').map(Number);
+    return { cx: cx!, cy: cy!, rxOut: rxOut!, ryOut: ryOut!, hole: hole!, depth: depth! };
+  };
+
+  function paint(svg: SVGElement, segs: string[], values: number[]) {
+    const box = boxOf(svg);
+    const arcs = D.arcsOf(values);
+    /* A slice and its «socket» use the same geometry — both have to be updated so the
+       spot revealed when hover pulls a slice out does not drift. The label layer has no
+       geometry, so skip it. */
+    const groups = new Map<string, SVGGElement[]>();
+    for (const g of svg.querySelectorAll<SVGGElement>('g[data-seg]')) {
+      if (g.classList.contains('pie-label-g') || !g.querySelector('[data-p]')) continue;
+      const list = groups.get(g.dataset.seg!) ?? [];
+      list.push(g);
+      groups.set(g.dataset.seg!, list);
+    }
+    segs.forEach((seg, i) => {
+      const pt = D.partsOf(box, arcs[i]!);
+      for (const g of groups.get(seg) ?? []) {
+        for (const path of g.querySelectorAll<SVGPathElement>('[data-p]')) {
+          const k = path.dataset.p as keyof typeof pt;
+          path.setAttribute('d', pt[k] ?? '');
+        }
+      }
+    });
+    /* The angles decide the stacking order — when the angles move it has to be rebuilt
+       every frame. Stack the slice layer and the socket layer in the same order, each
+       inside its own parent. */
+    const socketLayer = svg.querySelector('.pie-socket-layer');
+    const mark = svg.querySelector('.pie-order-mark');
+    if (!mark) return;
+    for (const i of D.paintOrder(arcs)) {
+      for (const g of groups.get(segs[i]!) ?? []) {
+        if (g.classList.contains('pie-socket')) socketLayer?.appendChild(g);
+        else mark.parentNode!.insertBefore(g, mark);
+      }
+    }
+  }
+
+  let raf = 0;
+  function switchTo(to: string, from: string | null) {
+    pieWraps.forEach((w) => { w.hidden = w.dataset.view !== to; });
+    pieHost?.setAttribute('data-switched', '1');   // the entrance animation runs once and is done
+    if (!from || from === to || reduceMotion.matches) return;
+
+    const segs = SEGS;
+    const start = valuesOf(from);
+    const end = valuesOf(to);
+    if (start.length !== segs.length || end.length !== segs.length) return;
+    const svgs = [...document.querySelectorAll<SVGElement>(`.pie-wrap[data-view="${to}"] svg.pie`)];
+    if (!svgs.length || !svgs[0]!.dataset.geom) return;
+
+    svgs.forEach((s) => s.classList.add('is-morphing'));
+    cancelAnimationFrame(raf);
+    const t0 = performance.now();
+    const DUR = 620;
+    const ease = (t: number) => 1 - (1 - t) ** 3;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - t0) / DUR);
+      const e = ease(t);
+      const v = start.map((s0, i) => s0 + (end[i]! - s0) * e);
+      for (const svg of svgs) paint(svg, segs, v);
+      if (t < 1) { raf = requestAnimationFrame(step); return; }
+      svgs.forEach((s) => s.classList.remove('is-morphing'));
+      // line up the accessibility and pointer state of the slices that did and didn't hit 0
+      for (const svg of svgs) {
+        const groups = svg.querySelectorAll<SVGGElement>('g.pie-slice[data-seg]:not(.pie-label-g):not(.pie-socket)');
+        for (const g of groups) {
+          const i = segs.indexOf(g.dataset.seg!);
+          const on = i >= 0 && end[i]! > 0;
+          g.toggleAttribute('data-empty', !on);
+          if (on) { g.setAttribute('tabindex', '0'); g.removeAttribute('aria-hidden'); }
+          else { g.removeAttribute('tabindex'); g.setAttribute('aria-hidden', 'true'); }
+        }
+      }
+    };
+    raf = requestAnimationFrame(step);
+  }
+
+  let pieView = document.querySelector<HTMLElement>('.pie-wrap[data-view]:not([hidden])')?.dataset.view ?? 'circ';
+  pieModes.forEach((b) => {
+    b.addEventListener('click', () => {
+      const to = b.dataset.pieMode!;
+      if (to === pieView) return;
+      pieModes.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      switchTo(to, pieView);
+      pieView = to;
+    });
+  });
+
+  /* ---------- Pie slice ↔ legend linking ----------
+     Leaving the pairing to color alone confuses close pairs like pink/purple.
+     Hovering either side lights the other one up too. */
+  document.querySelectorAll<HTMLElement>('.pie-wrap').forEach((pieWrap) => {
+    const pairs = pieWrap.querySelectorAll<HTMLElement>('[data-seg]');
+    const setPair = (seg: string | null, on: boolean) => {
+      if (!seg) return;
+      pieWrap.querySelectorAll<HTMLElement>(`[data-seg="${CSS.escape(seg)}"]`)
+        .forEach((el) => el.classList.toggle('is-paired', on));
+    };
+    pairs.forEach((el) => {
+      const seg = el.dataset.seg ?? null;
+      el.addEventListener('mouseenter', () => setPair(seg, true));
+      el.addEventListener('mouseleave', () => setPair(seg, false));
+      el.addEventListener('focus', () => setPair(seg, true));
+      el.addEventListener('blur', () => setPair(seg, false));
+    });
+  });
+</script>

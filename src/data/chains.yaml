@@ -1,0 +1,34 @@
+# NXPC outside Henesys.
+#
+# This page uses only one public RPC, Henesys. The other chains are not read
+# on-chain — the surveyed figures from Notion «NXPC supply definition» are carried
+# over as they are, and the screen marks them «per the document» together with the as-of date.
+#
+# Bridge structure (section 3 of the document):
+#   Henesys ──SourceBridge lock──▶ Avalanche C-Chain ──CCIP pool lock──▶ BNB · Monad
+# Everything that left Henesys went to Avalanche only, and the BNB·Monad supply is
+# already inside the Avalanche total. So you must not just add the four chains up.
+
+asOf: "2026-08-29"
+source:
+  en: "Notion «NXPC supply definition»"
+
+chains:
+  - id: avalanche
+    label: { en: Avalanche C-Chain }
+    issued: 127852669
+    circulating: 111383210
+    # CCIP TokenPool 13,730,643 is collateral for the BNB·Monad wrapped tokens, so it is excluded — not deducting it double-counts
+    note: { en: "ERC-20, bridged from Henesys" }
+
+  - id: bnb
+    label: { en: BNB Chain }
+    issued: 13730323
+    circulating: 13729421
+    note: { en: "CCIP burn-mint from Avalanche" }
+
+  - id: monad
+    label: { en: Monad }
+    issued: 312
+    circulating: 292
+    note: { en: "CCIP burn-mint from Avalanche" }
