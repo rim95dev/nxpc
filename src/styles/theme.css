@@ -833,6 +833,21 @@ svg.spark     { display: block; }
 }
 .executes b { font-weight: 500; color: var(--ink-2); }
 
+/* Toggling «exclude non-circulating» changes segment widths rather than redrawing the
+   bar, so the change can be eased. Same duration as the donut morph. */
+.addr-catbar .catbar-seg { transition: flex-grow .5s cubic-bezier(.2, .8, .3, 1); }
+.addr-catbar .catbar-seg[data-empty] { pointer-events: none; }
+@media (prefers-reduced-motion: reduce) {
+  .addr-catbar .catbar-seg { transition: none; }
+}
+
+/* A balance that is shown but deliberately left out of the total. Quiet enough not to
+   compete with the figure, present enough that the sum is not a mystery. */
+.not-counted {
+  display: block; margin-top: 2px;
+  font-size: 10.5px; color: var(--ink-3); font-weight: 400; white-space: nowrap;
+}
+
 .preview-bar {
   margin: 0;
   padding: 7px 20px;
@@ -929,13 +944,21 @@ table.mini td.mono { font-size: 11.5px; }
   background: var(--surface-2);
   border: 1px solid var(--rule-2);
   box-shadow: var(--tip-shadow);
-  /* The card carries explorer links, so it has to take the pointer. It only does so
-     while open — a closed card sitting over the chart would swallow hovers. */
+  /* Inert until pinned. An open card lands under the cursor, so taking the pointer
+     while it is only a tooltip would eat the click aimed at the segment beneath it —
+     and that click is what pins it. */
   pointer-events: none;
   opacity: 0; transform: translateY(4px);
   transition: opacity .13s ease, transform .13s ease;
 }
-.seg-card[data-open] { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.seg-card[data-open] { opacity: 1; transform: translateY(0); }
+/* Pinned by a click. The accent is the only sign that it will not close on its own,
+   and a reader who has just clicked needs to see that something happened. */
+.seg-card[data-pinned] {
+  pointer-events: auto;
+  border-color: var(--c-circ-ink);
+  box-shadow: var(--tip-shadow), 0 0 0 1px var(--c-circ-ink);
+}
 
 .seg-card-addrs { margin-top: 9px; border-top: 1px solid var(--rule); padding-top: 8px; }
 .seg-card-addrs-h {
@@ -1170,7 +1193,19 @@ table.mini td.mono { font-size: 11.5px; }
   color: var(--ink); text-decoration: none;
 }
 .learn-links a:hover { border-color: var(--ink-4); background: var(--surface-2); }
-.learn-go { color: var(--ink-3); }
+/* Wordmarks only. They differ in aspect, so they are pinned to one height and let
+   their own ratio decide the width — matching widths instead would render the tall
+   ones tiny and the wide ones huge. */
+.learn-links a { justify-content: center; padding: 22px 20px; min-height: 78px; }
+.learn-logo {
+  --logo: var(--logo-light);
+  display: block; height: 30px; max-width: 100%;
+  background: var(--logo) center / contain no-repeat;
+  opacity: .88;
+  transition: opacity .18s ease;
+}
+:root[data-color-mode='dark'] .learn-logo { --logo: var(--logo-dark); }
+.learn-links a:hover .learn-logo { opacity: 1; }
 
 .pie-slice {
   transform-box: view-box;

@@ -87,19 +87,28 @@ export function attachSegCard(host: HTMLElement, labels: SegCardLabels): () => v
   host.appendChild(card);
 
   let active: HTMLElement | null = null;
-  /* The card holds links now, so it cannot vanish the moment the pointer leaves the
-     segment — the gap between the two would be impossible to cross. Closing is
-     deferred just long enough to reach the card, and cancelled if the pointer lands
-     on it. */
+  /* Closing is deferred a moment so the card does not blink on the way between two
+     segments. */
   let closing = 0;
+  /* A click pins the card open, and only then does it take the pointer.
+     Two problems, one answer. Unpinned, the card sits under the cursor and would
+     swallow the very click meant for the segment beneath it — the click that pins it.
+     And a card that closes on mouseleave cannot have its links reached at all: it is
+     placed relative to the segment, so a reader has no way to know which way to
+     travel. While it is a tooltip it stays inert (pointer-events, see theme.css); a
+     click turns it into something you can use. */
+  let pinned = false;
 
   const hideNow = () => {
+    pinned = false;
+    card.removeAttribute('data-pinned');
     card.removeAttribute('data-open');
     active?.classList.remove('is-active');
     active?.removeAttribute('aria-describedby');
     active = null;
   };
   const hide = () => {
+    if (pinned) return;
     clearTimeout(closing);
     closing = window.setTimeout(hideNow, 160);
   };
@@ -108,9 +117,12 @@ export function attachSegCard(host: HTMLElement, labels: SegCardLabels): () => v
   card.addEventListener('mouseleave', hide);
 
   const show = (el: HTMLElement, clientX: number, clientY: number) => {
+    // While pinned the card belongs to one segment; passing over others must not move it.
+    if (pinned && el !== active) return;
     const d = read(el);
     if (!d) return;
     clearTimeout(closing);
+    if (pinned) return; // keep it exactly where the click left it
 
     if (active !== el) {
       active?.classList.remove('is-active');
@@ -183,7 +195,19 @@ export function attachSegCard(host: HTMLElement, labels: SegCardLabels): () => v
     if (p) show(el, p.clientX, p.clientY);
   };
 
+  const onClick = (ev: Event) => {
+    const el = ev.currentTarget as HTMLElement;
+    if (pinned && el === active) { hideNow(); return; }
+    pinned = false;
+    const m = ev as MouseEvent;
+    show(el, m.clientX || el.getBoundingClientRect().left, m.clientY || el.getBoundingClientRect().top);
+    pinned = true;
+    card.setAttribute('data-pinned', '');
+    clearTimeout(closing);
+  };
+
   for (const el of targets) {
+    el.addEventListener('click', onClick);
     el.addEventListener('mouseenter', onEnter);
     el.addEventListener('mousemove', onMove);
     el.addEventListener('mouseleave', hide);
@@ -192,6 +216,14 @@ export function attachSegCard(host: HTMLElement, labels: SegCardLabels): () => v
     el.addEventListener('touchstart', onTouch, { passive: true });
   }
   host.addEventListener('mouseleave', hide);
+  /* Anywhere outside the card and its segments dismisses a pinned card — the one
+     gesture a reader will already try. A click inside is left alone so the links work. */
+  document.addEventListener('click', (ev) => {
+    if (!pinned) return;
+    const t = ev.target as Node;
+    if (card.contains(t) || targets.some((el) => el.contains(t))) return;
+    hideNow();
+  });
   document.addEventListener('touchstart', (ev) => {
     if (!host.contains(ev.target as Node)) hide();
   }, { passive: true });
@@ -199,6 +231,7 @@ export function attachSegCard(host: HTMLElement, labels: SegCardLabels): () => v
 
   return () => {
     for (const el of targets) {
+      el.removeEventListener('click', onClick);
       el.removeEventListener('mouseenter', onEnter);
       el.removeEventListener('mousemove', onMove);
       el.removeEventListener('mouseleave', hide);

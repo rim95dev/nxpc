@@ -444,9 +444,15 @@ const foldJson = JSON.stringify(FOLD_CONFIG);
       <ul class="learn-links">
         {t.learn.links.map((x) => (
           <li>
-            <a href={x.href} target="_blank" rel="noopener">
-              <span>{x.label}</span>
-              <span class="learn-go mono" aria-hidden="true">↗</span>
+            {/* Background images rather than <img>: the browser fetches only the
+                variant the theme asks for, where two stacked imgs would fetch both. */}
+            <a href={x.href} target="_blank" rel="noopener" aria-label={x.label}>
+              <span
+                class="learn-logo"
+                role="img"
+                aria-hidden="true"
+                style={`--logo-light:url("${base}/logos/${x.logo}.svg");--logo-dark:url("${base}/logos/${x.logo}-inv.svg");aspect-ratio:${x.ratio}`}
+              />
             </a>
           </li>
         ))}

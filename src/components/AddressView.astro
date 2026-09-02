@@ -49,38 +49,63 @@ const liveAvaxJson = JSON.stringify(liveAvaxAddressSpec(ADDRESSES));
 const rows = localizeAddresses(lang, balances, tokens)
   .sort((a, b) => (b.balance ?? -1) - (a.balance ?? -1));
 
-/* Hold-only categories (vault · treasury · ops) get the grey family; the rest use the four MSU colors. */
+/* Colour says whether it circulates, the way it does on the supply tab: grey for
+   what the policy deducts, the MSU family for everything else. The categories are a
+   functional split and cut across that — treasury holds both the vesting wallets and
+   the operating ones — so the bar groups by circulating status first and only then by
+   category. Painting a whole category grey put 686M of vesting and 49M of working
+   treasury under one dark block.
+   Where a concept exists on both tabs it keeps its colour there. */
 const CAT_COLOR: Record<string, string> = {
   bridge: 'var(--c-bridge)',
-  vault: 'var(--lock-1)',
-  treasury: 'var(--lock-2)',
-  ops: 'var(--lock-4)',
+  vault: 'var(--purple-2)',
+  treasury: 'var(--purple)',
+  ops: 'var(--blue-2)',
   token: 'var(--pink)',
-  infra: 'var(--purple)',
+  infra: 'var(--mint-2)',
 };
+const NONCIRC_SEG = 'noncirc';
 const CAT_LABEL: Record<string, string> = t.addr.cat;
 
-// null means the read did not come back, so it drops out of the total — counting it as 0 makes the total lie.
+/* null means the read did not come back, so it drops out of the total — counting it
+   as 0 makes the total lie. The bridge lock drops out too: it is the collateral for
+   the C-Chain balances listed further down, so adding both counts it twice. */
 const readRows = rows.filter((r) => r.balance !== null);
 const unread = rows.length - readRows.length;
-const held = readRows.reduce((n, r) => n + (r.balance ?? 0), 0);
+const counted = (r: (typeof rows)[number]) => !r.bridgeLock;
+const held = readRows.filter(counted).reduce((n, r) => n + (r.balance ?? 0), 0);
 const contracts = rows.filter((r) => r.type === 'contract').length;
 const eoas = rows.length - contracts;
 
-// Holdings per category as a single cylinder bar. The distribution shows up before you read the table.
-const byCat = new Map<string, number>();
-for (const r of rows) byCat.set(r.category, (byCat.get(r.category) ?? 0) + (r.balance ?? 0));
-const catSegments: Segment[] = [...byCat.entries()]
-  .filter(([, v]) => v > 0)
-  .sort((a, b) => b[1] - a[1])
-  .map(([cat, v]) => ({
+/* Holdings per category as a single cylinder bar. The distribution shows up before
+   you read the table. Both views are computed here so the toggle only has to change
+   which set of numbers the bar is drawn from — the category order stays fixed across
+   the two, or the segments would swap places mid-transition. */
+const circulating = rows.filter((r) => !r.nonCirculating);
+const totalOf = (rs: typeof rows, cat: string) =>
+  rs.filter((r) => r.category === cat && counted(r)).reduce((n, r) => n + (r.balance ?? 0), 0);
+
+const CATS = [...new Set(circulating.map((r) => r.category))]
+  .sort((a, b) => totalOf(circulating, b) - totalOf(circulating, a));
+
+const catSegments: Segment[] = [
+  {
+    id: NONCIRC_SEG,
+    label: t.term.nonCirculating,
+    value: rows.filter((r) => r.nonCirculating && counted(r)).reduce((n, r) => n + (r.balance ?? 0), 0),
+    color: 'var(--c-locked)',
+    sub: `${rows.filter((r) => r.nonCirculating).length}`,
+    subLabel: t.addr.perCat,
+  },
+  ...CATS.map((cat) => ({
     id: cat,
     label: CAT_LABEL[cat] ?? cat,
-    value: v,
+    value: totalOf(circulating, cat),
     color: CAT_COLOR[cat] ?? 'var(--ink-3)',
-    sub: `${rows.filter((r) => r.category === cat).length}`,
+    sub: `${circulating.filter((r) => r.category === cat).length}`,
     subLabel: t.addr.perCat,
-  }));
+  })),
+];
 
 const tiles = [
   {
@@ -108,7 +133,14 @@ const tiles = [
 
   <section class="band">
     <div class="wrap">
-      <div class="sec-head"><h2>{t.addr.title}</h2></div>
+      <div class="sec-head sec-head-row">
+        <h2>{t.addr.title}</h2>
+        {/* Sits with the page title, not with the table filters: it changes the totals
+            above as well as the rows below, so it does not belong to either alone. */}
+        <div id="addrCirc" class="chips" role="group" aria-label={t.addr.excludeNonCirc}>
+          <button data-circ="1" aria-pressed="false">{t.addr.excludeNonCirc}</button>
+        </div>
+      </div>
 
       <div class="tiles">
         {tiles.map((x) => (
@@ -120,6 +152,8 @@ const tiles = [
         ))}
       </div>
 
+      {/* The client re-sums this from the table rows, so no per-view figures ride along
+          here — one place computes them, and it is the one the reader is looking at. */}
       {catSegments.length > 0 && (
         <div class="catbar-host addr-catbar" set:html={categoryBar(catSegments, held, { fmt: F })} />
       )}
@@ -167,6 +201,9 @@ const tiles = [
                 data-type={r.type}
                 data-balance={r.balance ?? -1}
                 data-name={r.label.toLowerCase()}
+                data-cat={r.category}
+                data-noncirc={r.nonCirculating ? '1' : undefined}
+                data-uncounted={r.bridgeLock ? '1' : undefined}
               >
                 <td data-cell="title" data-label={t.addr.colLabel}>
                   <span class="wg" style={`background:${CAT_COLOR[r.category]}`}></span>{r.label}
@@ -196,10 +233,17 @@ const tiles = [
                     <button class="copy-btn" type="button" data-copy={r.address} title={t.addr.copy} aria-label={`${t.addr.copy} ${r.label}`}>⧉</button>
                   </span>
                 </td>
+                {/* The figure has a span of its own: the live update writes into that,
+                    so rewriting it cannot wipe the note sitting beside it. */}
                 <td class="mono num" data-label={t.addr.colBalance} data-bal={r.id}>
-                  {r.balance === null
-                    ? <span class="ph" title={t.addr.notReadWhy}>{t.addr.notRead}</span>
-                    : F.full(r.balance)}
+                  <span class="bal-v">
+                    {r.balance === null
+                      ? <span class="ph" title={t.addr.notReadWhy}>{t.addr.notRead}</span>
+                      : F.full(r.balance)}
+                  </span>
+                  {r.bridgeLock && (
+                    <span class="not-counted" title={t.addr.notCountedWhy}>{t.addr.notCounted}</span>
+                  )}
                 </td>
                 <td class="mono token-cell" data-label={t.addr.colToken}>
                   {r.standard ? (
@@ -259,7 +303,7 @@ const tiles = [
     const Fl = createFmt((document.documentElement.lang || 'en') as Lang);
     const paint = (balances: Record<string, number>) => {
       for (const [id, v] of Object.entries(balances)) {
-        const cell = document.querySelector<HTMLElement>(`[data-bal="${id}"]`);
+        const cell = document.querySelector<HTMLElement>(`[data-bal="${id}"] .bal-v`);
         if (cell) cell.textContent = Fl.full(v);
         const row = cell?.closest('tr') as HTMLElement | null;
         if (row) row.dataset.balance = String(v);
@@ -278,13 +322,14 @@ const tiles = [
       readLive(henesys)
         .then((live) => {
           paint(live.balances);
+          apply();
           document.getElementById('chainPill')?.setAttribute('data-live', '');
           document.dispatchEvent(new CustomEvent('nxpc:live', { detail: live }));
         })
         .catch(() => document.dispatchEvent(new CustomEvent('nxpc:live-failed')));
     }
     const avax = specOf('liveAvaxSpec');
-    if (avax?.ids?.length) readLive(avax).then((live) => paint(live.balances)).catch(() => {});
+    if (avax?.ids?.length) readLive(avax).then((live) => { paint(live.balances); apply(); }).catch(() => {});
   }
 
   /* ---------- Category bar hover ---------- */
@@ -293,14 +338,91 @@ const tiles = [
     .forEach((h) => attachSegCard(h, { ofTotal: T.seg.ofTotal, holder: T.seg.holder, status: T.seg.status, addresses: T.seg.addresses }));
 
   /* ---------- Filter · sort ---------- */
+  const F = createFmt((document.documentElement.lang || 'en') as Lang);
   const body = document.getElementById('addrBody') as HTMLTableSectionElement | null;
   const summary = document.getElementById('addrSummary');
   const all = Array.from(body?.querySelectorAll<HTMLTableRowElement>('tr') ?? []);
   let type = 'all';
   let sort = 'balance';
+  /* Default off: the tab is a list of what the team holds, and hiding part of that by
+     default would be answering a question the reader has not asked yet. */
+  let hideNonCirc = false;
+
+  /* ---------- Category bar ----------
+     The bar is not redrawn on a toggle. The segments keep their identity and only
+     their width changes — CSS eases flex-grow, and the hover cards stay attached
+     because the elements never move.
+
+     Totals are summed from the rows rather than read off a server-rendered figure, so
+     a live read moves the bar and the tiles with the cells. Rows marked uncounted are
+     left out: the bridge lock is collateral for the C-Chain balances listed further
+     down, and adding both would count it twice. */
+  const bar = document.querySelector<HTMLElement>('.addr-catbar');
+
+  const totalsOf = (rows: HTMLTableRowElement[]) => {
+    const per = new Map<string, { v: number; n: number }>();
+    let total = 0;
+    for (const tr of rows) {
+      const bal = Number(tr.dataset.balance);
+      const v = Number.isFinite(bal) && bal > 0 ? bal : 0;
+      /* Same buckets the server drew: non-circulating first, then category. */
+      const cat = tr.dataset.noncirc === '1' ? 'noncirc' : (tr.dataset.cat ?? '');
+      const e = per.get(cat) ?? { v: 0, n: 0 };
+      e.n += 1;
+      if (tr.dataset.uncounted !== '1') { e.v += v; total += v; }
+      per.set(cat, e);
+    }
+    return { per, total };
+  };
+
+  function paintBar(rows: HTMLTableRowElement[]) {
+    if (!bar) return;
+    const { per, total } = totalsOf(rows);
+    const segs = [...bar.querySelectorAll<HTMLElement>('.catbar-seg')];
+    const legend = [...bar.querySelectorAll<HTMLElement>('.lg-item')];
+    const vals = segs.map((el) => per.get(el.dataset.seg ?? '')?.v ?? 0);
+    const counts = segs.map((el) => String(per.get(el.dataset.seg ?? '')?.n ?? 0));
+
+    segs.forEach((el, i) => {
+      const v = vals[i] ?? 0;
+      el.style.flexGrow = String(v);
+      /* A zero-width segment is still in the flex row and still focusable. Take it out
+         of the tab order and off the pointer while it has nothing to show. */
+      el.toggleAttribute('data-empty', v === 0);
+      el.dataset.value = F.full(v);
+      el.dataset.pct = total > 0 ? F.pct(v / total) : '—';
+    });
+    legend.forEach((li, i) => {
+      const v = vals[i] ?? 0;
+      li.hidden = v === 0;
+      li.dataset.value = F.full(v);
+      li.dataset.pct = total > 0 ? F.pct(v / total) : '—';
+      li.dataset.sub = counts[i] ?? '';
+      const val = li.querySelector('.lg-val'); if (val) val.textContent = F.compact(v);
+      const pct = li.querySelector('.lg-pct'); if (pct) pct.textContent = total > 0 ? F.pct(v / total) : '—';
+    });
+
+  }
+
+  /** The tiles count what the table is showing; leaving them on the full set puts two
+      different answers to the same question on one screen. */
+  function paintTiles(visible: HTMLTableRowElement[]) {
+    const { total } = totalsOf(visible);
+    const ct = visible.filter((tr) => tr.dataset.type === 'contract').length;
+    const tiles = document.querySelectorAll<HTMLElement>('.tile-v');
+    const set = (i: number, v: string) => { const el = tiles[i]; if (el) el.textContent = v; };
+    set(0, F.full(total));
+    set(1, String(visible.length));
+    set(2, String(ct));
+    set(3, String(visible.length - ct));
+  }
 
   function apply() {
-    const visible = all.filter((tr) => type === 'all' || tr.dataset.type === type);
+    const visible = all.filter(
+      (tr) =>
+        (type === 'all' || tr.dataset.type === type) &&
+        !(hideNonCirc && tr.dataset.noncirc === '1'),
+    );
     for (const tr of all) tr.hidden = !visible.includes(tr);
 
     const sorted = [...visible].sort((a, b) =>
@@ -317,6 +439,8 @@ const tiles = [
         .replace('{c}', String(ct))
         .replace('{e}', String(visible.length - ct));
     }
+    paintBar(visible);
+    paintTiles(visible);
   }
 
   document.querySelectorAll<HTMLButtonElement>('#addrType button').forEach((b) => {
@@ -324,6 +448,13 @@ const tiles = [
       type = b.dataset.type ?? 'all';
       document.querySelectorAll('#addrType button').forEach((x) =>
         x.setAttribute('aria-pressed', String(x === b)));
+      apply();
+    });
+  });
+  document.querySelectorAll<HTMLButtonElement>('#addrCirc button').forEach((b) => {
+    b.addEventListener('click', () => {
+      hideNonCirc = !hideNonCirc;
+      b.setAttribute('aria-pressed', String(hideNonCirc));
       apply();
     });
   });

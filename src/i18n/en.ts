@@ -76,6 +76,9 @@ export const en = {
     filterEoa: 'EOAs',
     copy: 'Copy',
     copied: 'Copied',
+    excludeNonCirc: 'Exclude non-circulating',
+    notCounted: '* not in the total',
+    notCountedWhy: 'Collateral for the NXPC on C-Chain listed below — counting both would count it twice',
     notRead: 'no read',
     notReadWhy: 'the RPC for this chain did not answer',
     cat: {
@@ -99,11 +102,16 @@ export const en = {
 
   learn: {
     heading: 'Learn more about',
+    /**
+     * Wordmarks, no captions — the marks are the label. `label` is still carried for
+     * the accessible name, since an image-only link is otherwise unreadable to a
+     * screen reader. `logo` names a pair of files in public/logos (…svg and …-inv.svg)
+     * and `ratio` is that artwork's own aspect, which lets all three sit at one height.
+     */
     links: [
-      { label: 'TBD — link 1', href: '#' },
-      { label: 'TBD — link 2', href: '#' },
-      { label: 'TBD — link 3', href: '#' },
-      { label: 'TBD — link 4', href: '#' },
+      { label: 'NEXPACE', href: 'https://nexpace.io/', logo: 'nexpace', ratio: 5.583 },
+      { label: 'MapleStory Universe', href: 'https://msu.io/', logo: 'msu', ratio: 3.104 },
+      { label: 'MapleStory N', href: 'https://msu.io/maplestoryn', logo: 'msn', ratio: 4.667 },
     ],
   },
 

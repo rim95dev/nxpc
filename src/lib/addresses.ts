@@ -2,6 +2,7 @@ import { parse } from 'yaml';
 import { z } from 'zod';
 import raw from '../data/addresses.yaml?raw';
 import type { Lang } from '../i18n';
+import { WALLETS, isPolicyDeduction } from './wallets';
 
 /**
  * Managed address registry — the contracts / EOAs the team operates.
@@ -67,6 +68,43 @@ function load(): AddressEntry[] {
 
 export const ADDRESSES: AddressEntry[] = load();
 
+/**
+ * Addresses the circulating supply policy deducts, taken from the supply registry.
+ *
+ * Duplicated here the two would drift: wallets.yaml decides what is non-circulating
+ * and this tab only asks.
+ *
+ * The join has to include the chain. The supply registry is Henesys-only, and the
+ * deployer is shared across chains — C-Chain Treasury sits at the same address as
+ * TeamVestingWallet and is an unrelated contract. Matching on the address alone
+ * marked it non-circulating.
+ */
+const DEDUCTED = new Set(
+  WALLETS.filter((w) => isPolicyDeduction(w.tier) && w.address)
+    .map((w) => w.address!.toLowerCase()),
+);
+
+export const isNonCirculating = (address: string, chain: AddressEntry['chain']) =>
+  chain === 'henesys' && DEDUCTED.has(address.toLowerCase());
+
+/**
+ * The Henesys bridge lock, again from the supply registry.
+ *
+ * It is left out of «total held» because it would be counted twice. The lock is the
+ * collateral for the NXPC that exists on C-Chain, and this tab lists the C-Chain
+ * balances too — the same tokens seen from both ends. Adding the lock to the total
+ * puts the address tab above circulating supply, which cannot be right.
+ *
+ * The row still shows the balance. It is a real amount at a real address; it just is
+ * not an amount held on top of what the other rows already account for.
+ */
+const BRIDGE_LOCK = new Set(
+  WALLETS.filter((w) => w.tier === 'bridge' && w.address).map((w) => w.address!.toLowerCase()),
+);
+
+export const isBridgeLock = (address: string, chain: AddressEntry['chain']) =>
+  chain === 'henesys' && BRIDGE_LOCK.has(address.toLowerCase());
+
 export interface TokenInfo {
   name?: string;
   symbol?: string;
@@ -83,6 +121,10 @@ export interface LocalizedAddress {
   label: string;
   address: string;
   executes?: string[];
+  /** True when the circulating supply policy deducts this address. */
+  nonCirculating: boolean;
+  /** True when the balance is already represented elsewhere and must not be added to the total. */
+  bridgeLock: boolean;
   /** null means it was not read — this must be distinguished from 0. */
   balance: number | null;
   token?: TokenInfo;
@@ -100,6 +142,8 @@ export function localizeAddresses(
     chain: a.chain,
     ...(a.standard ? { standard: a.standard } : {}),
     ...(a.executes ? { executes: [...a.executes] } : {}),
+    nonCirculating: isNonCirculating(a.address, a.chain),
+    bridgeLock: isBridgeLock(a.address, a.chain),
     label: a.label[lang],
     address: a.address,
     balance: balances[a.id] ?? null,
