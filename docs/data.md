@@ -28,17 +28,49 @@ back to genesis. The backfill depends on that.
 ## Three layers
 
 ```
-Build time (GitHub Actions)   ← the numbers of record
+Build time (GitHub Actions)   ← what the page says without JavaScript
   one Multicall3 read of the current state → baked into the HTML,
   and written to src/data/snapshots/YYYY-MM-DD.json
 
-Browser (~23KB)               ← freshness only
-  one eth_blockNumber, compared against the baked block → FRESH / STALE
-  It never overwrites a baked number. It does not call while the tab is hidden.
+Browser (~31KB)               ← what the page says once JavaScript runs
+  one aggregate3: every balance plus getBlockNumber and
+  getCurrentBlockTimestamp. Folded through the same fold() and written over
+  the baked figures. Any failure leaves them untouched.
+  Then a bare eth_blockNumber every 30s for the freshness pill.
+  Nothing is read while the tab is hidden.
 
 Git history                   ← the time-series database
   RPC cannot hand you the past. One commit is one data point.
 ```
+
+### The live read
+
+`src/lib/live.ts` and `liveSpec()` in `src/lib/reads.ts`.
+
+The calldata is identical for every visitor, so it is encoded once at build time
+and shipped as a string; the client posts it and decodes the response by hand.
+Decoding `(bool, bytes)[]` is about forty lines of offset walking, which is worth
+it — pulling viem in for one fixed-shape response took the client bundle from
+25 KB to 207 KB.
+
+`fold()` had the same problem: it imports the registry, which means zod and a
+YAML parser. The arithmetic now lives in `src/lib/fold.ts` and takes its
+configuration as plain data, which the server ships next to the page. Both the
+build and the browser call the same `foldWith()`, so a live figure cannot be
+derived by a different formula than a baked one.
+
+**It fails closed.** A transport error, an RPC error, a short response or a
+single failed entry all abort the update. A partial read is the dangerous case:
+a missing balance reads as zero and *inflates* circulating supply, which looks
+plausible and is wrong.
+
+Measured 2026-09-02: 30 wallets, 7 KB of calldata, 9.5 KB back, 215 ms median.
+Because everything rides in one `aggregate3`, the registry can grow without the
+request count moving.
+
+Native balances go through Multicall3's own `getEthBalance` — NXPC has no
+contract, so the call targets Multicall3 and reads `addr.balance` from EVM state.
+Verified against `eth_getBalance` at a pinned block: identical.
 
 ## The supply series — three sources
 
@@ -159,10 +191,15 @@ deployed.
 Two fields decide how a wallet is counted, and they are not the same thing:
 
 - `tier` decides the **policy** figure. Three tiers are subtracted —
-  `burn`, `locked`, `team`. The Fusion reserve (NXPCRecycleVault) is **not**
-  deducted: NXPC enters it through Fission and leaves through Fusion, nothing
-  holds it there, and deducting it would put this page ~90M below the figure
-  MSU Explorer publishes.
+  `burn`, `locked`, `vesting`: burn, the undistributed reward pool, and the
+  allocations still behind a cliff (IP MG, team, advisors). That is the set the
+  published circulating supply figure is built on, so this page reports the same
+  number rather than a private variant of it. The Fusion reserve
+  (NXPCRecycleVault) is **not** deducted: NXPC enters it through Fission and
+  leaves through Fusion, and nothing holds it there.
+
+  Burned is the `0x…dEaD` balance alone. The 6 NXPC at `0x000…0` is not an
+  official burn address and counts as circulating.
 - `strictCirculating` decides the **stricter** figure, which additionally
   removes anything still under issuer control. It has no default, so every entry
   has to state it.

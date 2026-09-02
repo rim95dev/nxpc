@@ -814,6 +814,18 @@ svg.spark     { display: block; }
   .chart-area .gap-mark { transition: none; }
 }
 
+/* The live marker appears only after a read has actually landed. Rendering it
+   up front would promise something the page has not done yet. */
+.pill-live, .pill-live-sep { display: none; }
+#chainPill[data-live] .pill-live,
+#chainPill[data-live] .pill-live-sep { display: inline-block; }
+.pill-live { color: var(--c-circ-ink); font-weight: 500; letter-spacing: .04em; }
+#chainPill[data-live] .dot { animation: pill-pulse 2.4s ease-in-out infinite; }
+@keyframes pill-pulse { 0%, 100% { opacity: 1 } 50% { opacity: .35 } }
+@media (prefers-reduced-motion: reduce) {
+  #chainPill[data-live] .dot { animation: none; }
+}
+
 .preview-bar {
   margin: 0;
   padding: 7px 20px;

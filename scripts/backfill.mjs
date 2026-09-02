@@ -161,7 +161,7 @@ const HEADER = `# NXPC historical circulating supply — scripts/backfill.mjs pu
 #   date             YYYY-MM-DD (the block just before 00:00 UTC on that day)
 #   total_issued     total issued (constant, 1 billion)
 #   burned           cumulative burned
-#   non_circulating  reward pool + vesting (the Fusion reserve circulates)
+#   non_circulating  reward pool + cliff-locked allocations (IP MG, team, advisors)
 #   bridged          amount deposited in the C-Chain bridge
 #   block            block height at that point
 #

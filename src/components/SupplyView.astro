@@ -1,6 +1,9 @@
 ---
 import Site from '../layouts/Site.astro';
 import { buildPageData, TOTAL_ISSUED } from '../lib/supply';
+import { liveText } from '../lib/livemap';
+import { liveSpec } from '../lib/reads';
+import { FOLD_CONFIG } from '../lib/model';
 import { localizeWallets, PLACEHOLDER_COUNT, POLICY_TIERS, TIERS, isPolicyDeduction, type Tier } from '../lib/wallets';
 import { localizeChains } from '../lib/chains';
 import { lastDays } from '../lib/window';
@@ -63,7 +66,7 @@ const TIER_COLOR: Record<string, string> = {
   // Non-circulating, burn
   burn: 'var(--c-burn)',
   locked: 'var(--lock-1)',
-  team: 'var(--lock-4)',
+  vesting: 'var(--lock-4)',
   // Circulating composition
   fusion: 'var(--purple-2)',
   bridge: 'var(--blue)',
@@ -138,18 +141,20 @@ const chainSegments: Segment[] = [
   },
 ];
 
+/* `live` names the figure in livemap.ts, so the same key drives the baked text and
+   the rewrite after a live read. */
 const equation = [
-  { k: t.term.maxSupply, v: s.totalIssued, cls: 'eq-total', anchor: '#method', op: '' },
-  { k: t.term.burned, v: s.burned, cls: 'eq-burn', anchor: '#wallets', op: '−' },
-  { k: t.term.nonCirculating, v: s.nonCirculating, cls: 'eq-non', anchor: '#wallets', op: '−' },
-  { k: t.term.circulating, v: s.circulating, cls: 'eq-circ', anchor: '#supply', op: '=' },
+  { k: t.term.maxSupply, live: 'totalIssued', cls: 'eq-total', anchor: '#method', op: '' },
+  { k: t.term.burned, live: 'burned', cls: 'eq-burn', anchor: '#wallets', op: '−' },
+  { k: t.term.nonCirculating, live: 'nonCirculating', cls: 'eq-non', anchor: '#wallets', op: '−' },
+  { k: t.term.circulating, live: 'circulating', cls: 'eq-circ', anchor: '#supply', op: '=' },
 ];
 
 const tiles = [
-  { k: t.term.maxSupply, v: s.totalIssued, sub: t.tile.fixedCap, color: 'var(--ink-2)' },
-  { k: t.term.circulating, v: s.circulating, sub: F.pct(s.circulating / s.totalIssued), color: 'var(--c-circ)' },
-  { k: t.term.nonCirculating, v: s.nonCirculating, sub: F.pct(s.nonCirculating / s.totalIssued), color: 'var(--c-locked)' },
-  { k: t.term.burned, v: s.burned, sub: F.pct(s.burned / s.totalIssued), color: 'var(--c-burn)' },
+  { k: t.term.maxSupply, live: 'totalIssued', sub: t.tile.fixedCap, color: 'var(--ink-2)' },
+  { k: t.term.circulating, live: 'circulating', sub: '', color: 'var(--c-circ)' },
+  { k: t.term.nonCirculating, live: 'nonCirculating', sub: '', color: 'var(--c-locked)' },
+  { k: t.term.burned, live: 'burned', sub: '', color: 'var(--c-burn)' },
 ];
 
 // One cylinder — total issued — splits into three pieces. The sum is total issued.
@@ -180,6 +185,12 @@ const pieViews: PieView[] = [
    from the target SVG altogether, there would be nowhere to play the «shrinking to 0»
    motion, and start and end would come out the same. */
 const UNION: Segment[] = [...segments, ...chainSegments];
+/* Where a slice's value comes from, for the live update. Chain rows other than
+   Henesys are surveyed figures, not on-chain, so they never move. */
+const srcOf = (id: string): string =>
+  id === 'strict' || id === 'chain-henesys' ? 'strict'
+  : id.startsWith('chain-') ? 'static'
+  : `tier:${id}`;
 const unionFor = (view: PieView): PieSlice[] => {
   const has = new Map(view.slices.map((x) => [x.id, x.value]));
   return UNION.map((x) => ({ ...x, value: has.get(x.id) ?? 0 }));
@@ -193,6 +204,13 @@ const ssrDomain = domainOf(lastDays(data.series.points, DEFAULT_RANGE));
 /* The source the range chips zoom over. Hand over the points the server baked as they
    are — if the client recomputes them the two paths drift apart. */
 const seriesJson = JSON.stringify(data.series.points);
+
+/* The figures a live read can move, and the request that moves them. Both are
+   baked: the text so the page reads without JavaScript, the calldata because it is
+   the same bytes for every visitor. */
+const LIVE = liveText(s, F);
+const liveJson = JSON.stringify(liveSpec());
+const foldJson = JSON.stringify(FOLD_CONFIG);
 ---
 
 <Site lang={lang} page="supply" head={head} takenAt={data.snapshot.takenAt} rpcError={data.rpcError}>
@@ -220,15 +238,15 @@ const seriesJson = JSON.stringify(data.series.points);
     <div class="wrap">
       <div class="eyebrow">{t.hero.eyebrow}</div>
       <div class="hero-num">
-        <span class="mono">{F.full(s.circulating)}</span>
+        <span class="mono" data-live="circulating">{LIVE.circulating}</span>
         <span class="hero-unit">{t.hero.unit}</span>
       </div>
-      <div class="hero-pct mono">{F.pct(s.circulating / s.totalIssued)} {t.hero.ofTotal}</div>
+      <div class="hero-pct mono"><span data-live="circulating.pct">{LIVE['circulating.pct']}</span> {t.hero.ofTotal}</div>
 
       <dl class="hero-alt">
         <dt>{t.hero.strict}</dt>
-        <dd class="mono">{F.full(s.strictGlobal)}</dd>
-        <dd class="mono dim">{F.pct(s.strictGlobal / s.totalIssued)}</dd>
+        <dd class="mono" data-live="strictGlobal">{LIVE.strictGlobal}</dd>
+        <dd class="mono dim" data-live="strictGlobal.pct">{LIVE['strictGlobal.pct']}</dd>
       </dl>
 
       <div class="equation">
@@ -237,7 +255,7 @@ const seriesJson = JSON.stringify(data.series.points);
             {e.op && <span class="eq-op">{e.op}</span>}
             <a class={`eq-term ${e.cls}`} href={e.anchor}>
               <span class="eq-k">{e.k}</span>
-              <span class="eq-v mono">{F.full(e.v)}</span>
+              <span class="eq-v mono" data-live={e.live}>{LIVE[e.live]}</span>
             </a>
           </>
         ))}
@@ -253,8 +271,8 @@ const seriesJson = JSON.stringify(data.series.points);
         {tiles.map((x) => (
           <div class="tile" style={`--tile-accent:${x.color}`}>
             <div class="tile-k">{x.k}</div>
-            <div class="tile-v mono">{F.full(x.v)}</div>
-            <div class="tile-s mono">{x.sub}</div>
+            <div class="tile-v mono" data-live={x.live}>{LIVE[x.live]}</div>
+            <div class="tile-s mono" data-live={`${x.live}.pct`}>{LIVE[`${x.live}.pct`] ?? x.sub}</div>
           </div>
         ))}
       </div>
@@ -275,7 +293,9 @@ const seriesJson = JSON.stringify(data.series.points);
         </div>
       </div>
       {/* Bake both views and hide them — 'all' shows even without script. */}
-      <div id="pieViews" data-segs={UNION.map((x) => x.id).join(',')} hidden></div>
+      {/* data-segs is the slice order; data-vsrc says where each slice's value comes
+          from, so a live read can recompute them without rebuilding the segments here. */}
+      <div id="pieViews" data-segs={UNION.map((x) => x.id).join(',')} data-vsrc={UNION.map((x) => srcOf(x.id)).join(',')} hidden></div>
       {pieViews.map((v) => (
         <div
           class="pie-wrap"
@@ -351,6 +371,8 @@ const seriesJson = JSON.stringify(data.series.points);
         areaChart(data.series.points, { ...ctx, domain: ssrDomain, narrow: true })
       } />
       <script type="application/json" id="seriesData" set:html={seriesJson} is:inline />
+      <script type="application/json" id="liveSpec" set:html={liveJson} is:inline />
+      <script type="application/json" id="foldConfig" set:html={foldJson} is:inline />
 
       <ul class="chart-key">
         <li><span class="k-line k-solid"></span>{t.chart.legendCirculating}</li>
@@ -375,8 +397,8 @@ const seriesJson = JSON.stringify(data.series.points);
       <div class="bridge-grid">
         <div class="bridge-main">
           <div class="tile-k">{t.bridge.current}</div>
-          <div class="bridge-num"><span class="mono">{F.full(s.bridged)}</span> <span class="hero-unit">{t.hero.unit}</span></div>
-          <div class="tile-s mono">{F.pct(s.bridged / s.circulating)} {t.bridge.ofCirculating}</div>
+          <div class="bridge-num"><span class="mono" data-live="bridged">{LIVE.bridged}</span> <span class="hero-unit">{t.hero.unit}</span></div>
+          <div class="tile-s mono"><span data-live="bridged.pct">{LIVE['bridged.pct']}</span> {t.bridge.ofCirculating}</div>
           <div class="spark" set:html={sparkline(lastDays(data.series.points, 180).map((r) => r.bridged), 'var(--c-bridge)', t.bridge.spark)} />
           <div class="spark-cap">{t.bridge.spark}</div>
         </div>
@@ -389,8 +411,8 @@ const seriesJson = JSON.stringify(data.series.points);
               <div class="chain-sub">{t.bridge.l1Sub}</div>
             </div>
             <div class="chain-num">
-              <b class="mono">{F.full(s.onL1)}</b>
-              <span class="mono dim">{F.pct(s.onL1 / s.circulating)}</span>
+              <b class="mono" data-live="onL1">{LIVE.onL1}</b>
+              <span class="mono dim" data-live="onL1.pct">{LIVE['onL1.pct']}</span>
             </div>
           </div>
           <div class="chain-row">
@@ -400,8 +422,8 @@ const seriesJson = JSON.stringify(data.series.points);
               <div class="chain-sub">{t.bridge.cchainSub}</div>
             </div>
             <div class="chain-num">
-              <b class="mono">{F.full(s.bridged)}</b>
-              <span class="mono dim">{F.pct(s.bridged / s.circulating)}</span>
+              <b class="mono" data-live="bridged">{LIVE.bridged}</b>
+              <span class="mono dim" data-live="bridged.pct">{LIVE['bridged.pct']}</span>
             </div>
           </div>
           <div class="catbar-host catbar-host-tight" set:html={categoryBar([
@@ -509,6 +531,9 @@ const seriesJson = JSON.stringify(data.series.points);
   import { attachSegCard } from '../lib/segcard';
   import * as D from '../lib/donut';
   import { lastDays } from '../lib/window';
+  import { readLive } from '../lib/live';
+  import { liveText } from '../lib/livemap';
+  import { foldWith } from '../lib/fold';
   import { boxOf as trendBox, domainOf, geom } from '../lib/trend';
   import type { SeriesPoint } from '../lib/series';
   import type { Lang } from '../i18n';
@@ -704,6 +729,95 @@ const seriesJson = JSON.stringify(data.series.points);
   const first = host?.querySelector<SVGSVGElement>('svg.area');
   if (first) domain = { t0: Number(first.dataset.t0), t1: Number(first.dataset.t1) };
   attachHover(series);
+
+  /* ---------- Live read ----------
+     The figures above are baked at build time; this replaces them with what the
+     chain says right now. One aggregate3 carries every balance plus the head, so
+     it costs the same single request the freshness check used to.
+
+     It fails closed: any transport error, RPC error or partial result leaves the
+     baked numbers alone. A half-read would drop a balance to zero and inflate
+     circulating supply, which looks plausible and is wrong. */
+  const liveRaw = document.getElementById('liveSpec')?.textContent;
+  if (liveRaw) {
+    const spec = JSON.parse(liveRaw);
+    const foldCfg = JSON.parse(document.getElementById('foldConfig')?.textContent ?? 'null');
+    const pill = document.getElementById('chainPill');
+
+    /* A slice's value per the new model. `static` rows are surveyed figures from a
+       document, so they stay as baked. */
+    const valueFrom = (src: string, m: ReturnType<typeof foldWith>, was: number) => {
+      if (src === 'static') return was;
+      if (src === 'strict') return m.strictHenesys;
+      const tier = src.slice(5);
+      return m.rolls.find((r) => r.tier === tier)?.value ?? was;
+    };
+
+    const applyLive = (m: ReturnType<typeof foldWith>) => {
+      // 1. every plain figure, from the same map the server rendered with
+      const text = liveText(m, F);
+      document.querySelectorAll<HTMLElement>('[data-live]').forEach((el) => {
+        const v = text[el.dataset.live!];
+        if (v !== undefined) el.textContent = v;
+      });
+
+      // 2. the donut and the category bar, patched in place rather than redrawn
+      const srcs = (document.getElementById('pieViews')?.dataset.vsrc ?? '').split(',');
+      const denomOf = (view: string) =>
+        view === 'circ' ? m.circulating : view === 'chain' ? m.strictGlobal : m.totalIssued;
+
+      document.querySelectorAll<HTMLElement>('.pie-wrap[data-view]').forEach((wrap) => {
+        const was = (wrap.dataset.values ?? '').split(',').map(Number);
+        /* A slice absent from this view stays absent — that is a property of the
+           view, not of the balances. */
+        const now = was.map((w, i) => (w === 0 ? 0 : valueFrom(srcs[i]!, m, w)));
+        wrap.dataset.values = now.join(',');
+        const denom = denomOf(wrap.dataset.view!);
+
+        wrap.querySelectorAll<SVGSVGElement>('svg.pie').forEach((svg) => paint(svg, SEGS, now));
+        SEGS.forEach((seg, i) => {
+          const v = now[i]!;
+          const pct = denom > 0 ? F.pct(v / denom) : '—';
+          wrap.querySelectorAll<HTMLElement>(`[data-seg="${seg}"]`).forEach((el) => {
+            if (el.dataset.value !== undefined) { el.dataset.value = F.full(v); el.dataset.pct = pct; }
+            const amt = el.querySelector('.pie-amt'); if (amt) amt.textContent = F.compact(v);
+            const p = el.querySelector('.pie-pct'); if (p) p.textContent = pct;
+            const lv = el.querySelector('.pl-val'); if (lv) lv.textContent = F.full(v);
+            const lp = el.querySelector('.pl-pct'); if (lp) lp.textContent = pct;
+          });
+        });
+        const total = wrap.querySelector('.pl-total .pl-val');
+        if (total) total.textContent = F.full(denom);
+      });
+
+      document.querySelectorAll<HTMLElement>('.catbar-host [data-seg]').forEach((el) => {
+        const i = SEGS.indexOf(el.dataset.seg!);
+        if (i < 0) return;
+        const v = valueFrom(srcs[i]!, m, Number(el.dataset.value?.replace(/[^0-9]/g, '') ?? 0));
+        const pct = F.pct(v / m.totalIssued);
+        if (el.classList.contains('catbar-seg')) el.style.flexGrow = String(v);
+        if (el.dataset.value !== undefined) { el.dataset.value = F.full(v); el.dataset.pct = pct; }
+        const lv = el.querySelector('.lg-val'); if (lv) lv.textContent = F.compact(v);
+        const lp = el.querySelector('.lg-pct'); if (lp) lp.textContent = pct;
+      });
+    };
+
+    /* Hidden tabs do not need a read, and a background tab firing one on wake is
+       what gets an endpoint to rate-limit you. */
+    const run = () => {
+      if (document.hidden) return;
+      readLive(spec)
+        .then((live) => {
+          applyLive(foldWith(foldCfg, live.balances));
+          pill?.setAttribute('data-live', '');
+          document.dispatchEvent(new CustomEvent('nxpc:live', { detail: live }));
+        })
+        .catch((err) => {
+          pill?.setAttribute('data-live-failed', String(err?.message ?? err));
+        });
+    };
+    run();
+  }
 
   /* ---------- Color segment hover card ----------
      The cylinder bar, the legend and the waterfall bars use the same data-* contract,

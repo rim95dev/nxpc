@@ -7,11 +7,11 @@
 # tier   Deduction step. Decides which rung of the ladder an entry goes into.
 #   burn      Burned, unrecoverable
 #   locked    Locked, undistributed reserve (contribution rewards)
-#   team      Team and advisor vesting
+#   vesting   Cliff-locked allocations: IP MG, team, advisors
 #   fusion    NXPC Valhalla — reserve that comes in via Fission and goes out via Fusion.
 #             Counted as circulating: nothing holds it there. Listed as its own tier
 #             so its size stays visible inside the circulating figure.
-#   ↑ Everything down to here is an official deduction in Confluence «Token circulating supply policy».
+#   ↑ Everything down to here is an official deduction under the token circulating supply policy.
 #     circulating = total issued − burned − contribution reward balance − locked supply
 #
 #   bridge    Bridge lock. It exists as a wrapped token on another chain, so not deducting it double-counts
@@ -24,13 +24,13 @@
 # strictCirculating
 #   Whether it counts as circulating under the «issuer control basis». No default is set.
 #   Circulating under the «policy basis» is decided by tier, not by this field — the policy
-#   deducts only burn·locked·team, while fusion·treasury·ecosystem·ops·bridge·wrapper
-#   are included in circulating supply because the Confluence asset flow table says they «can be circulated at any time».
+#   deducts only burn·locked·vesting, while fusion·treasury·ecosystem·ops·bridge·wrapper
+#   are included in circulating supply because the asset flow table says they «can be circulated at any time».
 # share        Used when one address is split into shares (wrapper). Defaults to 1.
 # static       An aggregate entry whose address is not published. Not read on-chain; the source is recorded instead.
 #
-# Sources: Notion «NXPC supply definition» (2026-08-29)
-#          Confluence «Token circulating supply policy» v10 (MapleNFT)
+# Sources: the supply definition document (2026-08-29)
+#          the token circulating supply policy, v10
 # Check balances: node scripts/scan-balances.mjs
 
 # ── Burn ────────────────────────────────────────────────────────────────
@@ -42,11 +42,12 @@
   strictCirculating: false
 
 - id: burn-zero
-  tier: burn
+  tier: circulating
   label: { en: Zero address }
   holder: { en: "0x…0000" }
   address: "0x0000000000000000000000000000000000000000"
-  strictCirculating: false
+  # Not an official burn address, so it is not deducted — it counts as circulating.
+  strictCirculating: true
 
 # ── Locked · undistributed reserve ──────────────────────────────────────
 - id: contribution-reward-distributor
@@ -58,14 +59,14 @@
 
 # ── Team · advisor vesting ──────────────────────────────────────────────
 - id: team-vesting
-  tier: team
+  tier: vesting
   label: { en: Team vesting }
   holder: { en: TeamVestingWallet }
   address: "0xdA24fEf18739a118e0BE6519EC83acA71C977b34"
   strictCirculating: false
 
 - id: advisor-vesting
-  tier: team
+  tier: vesting
   label: { en: Advisor vesting }
   holder: { en: AdvisorVestingWallet }
   address: "0x59A95Ef49BEF691119008Db202Bf0F8c3b4ec2f5"
@@ -105,7 +106,7 @@
   strictCirculating: false
 
 - id: nuc-ipmg-wallet
-  tier: treasury
+  tier: vesting
   label: { en: IP management }
   holder: { en: NUCIPMGWallet }
   address: "0x9F98cfa105f04Ad42FA517d63bBeed4ff892554F"
@@ -149,7 +150,7 @@
 # ── Wrapper collateral — split by who holds the claim ───────────────────
 # NextMeso takes NXPC on deposit and issues NESO. The company holds 88.76% of the
 # NESO, so that much of the collateral NXPC is under company control too.
-# The share cannot be known from on-chain balances alone, so the surveyed figure from the Notion document is used.
+# The share cannot be known from on-chain balances alone, so the surveyed figure from the supply definition document is used.
 - id: nextmeso-company
   tier: wrapper
   label: { en: NextMeso collateral · company }
@@ -222,7 +223,7 @@
   label: { en: Operational hot wallets }
   holder: { en: "172 wallets" }
   static: 1146333
-  staticSource: { en: "Notion «Supply definition», 2026-08-29" }
+  staticSource: { en: "Supply definition document, 2026-08-29" }
   strictCirculating: false
 
 # ── Legacy wallets ──────────────────────────────────────────────────────
@@ -272,7 +273,7 @@
   address: "0x9525B6da53de6BdDae70F2C56Bbd47CA91406b6b"
   strictCirculating: false
 
-# Confluence «Token circulating supply policy» — Liquidity Provision is treated as circulating
+# Token circulating supply policy — Liquidity Provision is treated as circulating
 # ("because it is used for trading by the liquidity providers")
 - id: liquidity-provision
   tier: circulating

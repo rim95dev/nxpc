@@ -64,31 +64,42 @@ inside the total.
 
 ## Where the numbers come from
 
-Read from the **public Henesys RPC** (`https://henesys-rpc.msu.io`) at build
-time and written into the HTML, so the figures are in the page itself rather
-than fetched by a script afterwards. `curl` returns them; so does a reader with
-JavaScript turned off.
+Every figure is read from the **public Henesys RPC**
+(`https://henesys-rpc.msu.io`) — twice, on purpose.
+
+It is read at build time and written into the HTML, so the numbers are in the
+page itself: `curl` returns them, and so does a reader with JavaScript turned
+off. Then, on load, the page reads the same balances again live and replaces
+them. The pill in the header says **live** once that has happened. If the read
+fails for any reason, the built-in figures stay exactly as they were rather than
+being replaced by blanks or zeros.
+
+That live read is a single request. Every wallet balance and the chain head are
+packed into one `aggregate3` call, so adding wallets to the registry changes the
+size of the request, never the number of them.
 
 Every wallet in a hover card links to that address on
 [Snowtrace](https://68414.snowtrace.io), where the same balance can be read
 independently.
 
-| What | How often |
+| What | When |
 |---|---|
-| The current figures | Rebuilt every 3 hours |
+| The headline figures and the composition | Live, on every visit |
+| The built-in figures behind them | Rebuilt every 3 hours |
 | A new point on the trend | Added weekly, on Thursdays |
 | Everything before that | Reconstructed from archive reads, weekly from 2025-05-15 |
 
-The page compares the block it was built at against the live chain head and
-marks itself **STALE** when it has fallen behind, so a stopped job shows up on
-the page instead of quietly serving old numbers.
+The trend chart stays as built — it is a weekly series, and a live point on the
+end would only make the last segment twitch. The page also compares the block it
+was built at against the chain head and marks itself **STALE** when it has fallen
+behind, so a stopped job shows up on the page instead of quietly serving old
+numbers.
 
 ## Learn more
 
 - [Tokenomics · NXPC](https://docs.nexpace.io/tokenomics/nxpc/)
 - [Allocation](https://docs.nexpace.io/tokenomics/nxpc/allocation/)
 - [Unlocked supply schedule](https://docs.nexpace.io/tokenomics/nxpc/unlocked-supply-schedule/)
-- [MSU Explorer · token supply dashboard](https://msu-explorer.xangle.io/tokenomics/token-supply-dashboard)
 
 ## Running it
 

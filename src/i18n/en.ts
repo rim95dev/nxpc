@@ -90,7 +90,7 @@ export const en = {
     sortLabel: 'Label',
   },
 
-  rpc: { connecting: 'connecting', failed: 'RPC failed', behind: 'behind baked', latest: 'latest' },
+  rpc: { connecting: 'connecting', failed: 'RPC failed', behind: 'behind baked', latest: 'latest', live: 'live' },
 
   page: {
     title: 'NXPC circulation',
@@ -119,7 +119,7 @@ export const en = {
   tier: {
     burn: 'Burned',
     locked: 'Reward pool · undistributed',
-    team: 'Vesting · team & advisors',
+    vesting: 'Vesting · IP, team & advisors',
     fusion: 'Fusion reserve',
     bridge: 'Bridge locked',
     treasury: 'Treasury',

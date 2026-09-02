@@ -16,28 +16,33 @@ const L10n = z.object({ en: z.string().min(1) });
 
 /**
  * Deduction stages. The first four are the official deduction items from
- * Confluence «Token circulating supply policy»; the following five are deducted
+ * the token circulating supply policy; the following five are deducted
  * one step further under the «issuer control» basis.
  * This order is exactly the ladder order on screen.
  */
 export const TIERS = [
-  'burn', 'locked', 'team', 'fusion',
+  'burn', 'locked', 'vesting', 'fusion',
   'bridge', 'treasury', 'wrapper', 'ecosystem', 'ops',
   'circulating',
 ] as const;
 export type Tier = (typeof TIERS)[number];
 
 /**
- * Items deducted down to the policy-basis circulating supply — the Confluence
- * formula stops here.
+ * Items deducted down to the policy-basis circulating supply: burn, the
+ * undistributed reward pool, and every allocation still behind a cliff
+ * (IP MG, team, advisors).
  *
- * The Fusion reserve (NXPCRecycleVault) is **not** here. NXPC sitting in the vault
- * is circulating: it went in through Fission and comes back out through Fusion,
- * and nothing stops it. Deducting it would put this page ~90M below the figure
- * MSU Explorer publishes, which is the number people compare against.
- * The stricter figure still removes it — see strictCirculating on those entries.
+ * That set is what the published circulating supply figure is built on, so this
+ * page reports the same number rather than a private variant of it.
+ *
+ * What is deliberately **not** here:
+ *   · The Fusion reserve (NXPCRecycleVault). NXPC goes in through Fission and
+ *     comes back out through Fusion; nothing holds it there.
+ *   · Treasury, ecosystem, ops, bridge and wrapper balances, which the policy
+ *     treats as circulating because they can move at any time.
+ * The stricter figure still removes all of those — see strictCirculating.
  */
-export const POLICY_TIERS: Tier[] = ['burn', 'locked', 'team'];
+export const POLICY_TIERS: Tier[] = ['burn', 'locked', 'vesting'];
 
 const WalletSchema = z
   .object({
@@ -131,7 +136,7 @@ export interface LocalizedWallet {
   address?: string;
   share?: number;
   source?: string;
-  /** Whether it circulates under Confluence «Token circulating supply policy». tier decides it. */
+  /** Whether it circulates under the token circulating supply policy. tier decides it. */
   inPolicy: boolean;
   /** Whether it circulates on the conservative basis that also weighs issuer control. */
   inStrict: boolean;

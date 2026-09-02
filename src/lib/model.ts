@@ -1,5 +1,6 @@
 import { WALLETS, POLICY_TIERS, TIERS, type Tier } from './wallets';
 import { OFF_HENESYS_CIRCULATING } from './chains';
+import { foldWith, type FoldConfig } from './fold';
 
 /**
  * Total issued supply. NXPC on Henesys is a native gas token with no contract,
@@ -29,8 +30,8 @@ export interface SupplyModel {
   rolls: TierRoll[];
   /**
    * Circulating supply on the policy basis: total issued minus the tiers
-   * POLICY_TIERS names — burn, locked, team. The Fusion reserve is deliberately
-   * not among them; see the note on POLICY_TIERS.
+   * POLICY_TIERS names — burn, locked, vesting — which is the set the published
+   * circulating supply figure is built on. See the note on POLICY_TIERS.
    * This is the disclosed figure, so the headline uses it.
    */
   circulating: number;
@@ -48,73 +49,27 @@ export interface SupplyModel {
   /** The part of the policy-basis circulating supply that stays on Henesys (what is left after the bridge lock). */
   onL1: number;
   burned: number;
-  /** The policy deductions minus burn (reward pool + vesting). */
+  /** The policy deductions minus burn (the reward pool and the cliff-locked allocations). */
   nonCirculating: number;
   bridged: number;
   balances: Record<string, number>;
 }
 
-const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
+/** The registry as the fold needs it. Shipped to the client so a live read folds identically. */
+export const FOLD_CONFIG: FoldConfig = {
+  wallets: WALLETS.map((w) => ({
+    id: w.id,
+    tier: w.tier,
+    strictCirculating: w.strictCirculating,
+    ...(w.share !== undefined ? { share: w.share } : {}),
+    ...(w.static !== undefined ? { fromDoc: true } : {}),
+  })),
+  tiers: [...TIERS],
+  policyTiers: POLICY_TIERS,
+  totalIssued: TOTAL_ISSUED,
+  offHenesys: OFF_HENESYS_CIRCULATING,
+};
 
-/**
- * Folds the balance map down the deduction ladder.
- *
- * The point is to run the historical files and the snapshot through the same function —
- * if the two paths compute circulating supply by different formulas, the chart does not line up.
- */
-export function fold(balances: Record<string, number>): SupplyModel {
-  const byTier = new Map<Tier, TierItem[]>();
-  for (const t of TIERS) byTier.set(t, []);
-
-  for (const w of WALLETS) {
-    const item: TierItem = {
-      id: w.id,
-      value: balances[w.id] ?? 0,
-      ...(w.share !== undefined ? { share: w.share } : {}),
-      fromDoc: w.static !== undefined,
-    };
-    byTier.get(w.tier)!.push(item);
-  }
-
-  const rolls: TierRoll[] = TIERS.map((tier) => {
-    const items = byTier.get(tier)!;
-    return { tier, value: sum(items.map((i) => i.value)), items };
-  });
-  const valueOf = (tier: Tier) => rolls.find((r) => r.tier === tier)!.value;
-
-  /* Policy basis — subtract only the four items the Confluence formula subtracts. */
-  const circulating = TOTAL_ISSUED - sum(POLICY_TIERS.map(valueOf));
-
-  /* Stricter basis — subtract every entry whose strictCirculating is false.
-     Entries with strictCirculating: true (the wrapper user portion and the like)
-     stay in: they are already on the circulating side, and the flag only records
-     that their origin is identified. */
-  const excluded = WALLETS.filter((w) => !w.strictCirculating).map((w) => balances[w.id] ?? 0);
-  const strictHenesys = TOTAL_ISSUED - sum(excluded);
-
-  return {
-    totalIssued: TOTAL_ISSUED,
-    rolls,
-    circulating,
-    strictHenesys,
-    strictGlobal: strictHenesys + OFF_HENESYS_CIRCULATING,
-    offHenesys: OFF_HENESYS_CIRCULATING,
-    attributed: WALLETS.filter((w) => w.strictCirculating).map((w) => ({
-      id: w.id,
-      value: balances[w.id] ?? 0,
-      ...(w.share !== undefined ? { share: w.share } : {}),
-      fromDoc: w.static !== undefined,
-    })),
-    /* Derived from POLICY_TIERS rather than listed by hand — a tier that stops being
-       a deduction has to leave this breakdown at the same time, or the non-circulating
-       split adds up to more than the non-circulating total. */
-    buckets: POLICY_TIERS.filter((t) => t !== 'burn')
-      .map((t) => ({ id: t, value: valueOf(t) }))
-      .filter((b) => b.value > 0),
-    onL1: circulating - valueOf('bridge'),
-    burned: valueOf('burn'),
-    nonCirculating: TOTAL_ISSUED - circulating - valueOf('burn'),
-    bridged: valueOf('bridge'),
-    balances,
-  };
-}
+/** Build-time fold, against the real registry. */
+export const fold = (balances: Record<string, number>): SupplyModel =>
+  foldWith(FOLD_CONFIG, balances);

@@ -1,6 +1,7 @@
-import { createPublicClient, http, parseAbi, formatUnits } from 'viem';
+import { createPublicClient, encodeFunctionData, http, parseAbi, formatUnits } from 'viem';
 import { henesys, RPC_URL, MULTICALL_CHUNK } from './chain';
 import { WALLETS, READABLE } from './wallets';
+import type { LiveSpec } from './live';
 
 const client = createPublicClient({
   chain: henesys,
@@ -15,6 +16,13 @@ const MULTICALL3_ABI = parseAbi([
 ]);
 
 const MC = henesys.contracts.multicall3.address;
+/** aggregate3's own signature. viem uses it internally; encoding calldata by hand needs it spelled out. */
+const AGGREGATE3_ABI = parseAbi([
+  'struct Call3 { address target; bool allowFailure; bytes callData; }',
+  'function aggregate3(Call3[] calls) payable returns (Result[] returnData)',
+  'struct Result { bool success; bytes returnData; }',
+]);
+
 
 export type ReadSpec =
   | { key: string; kind: 'native'; address: `0x${string}` }
@@ -84,6 +92,40 @@ function chunk<T>(xs: T[], n: number): T[][] {
 }
 
 /** Reads the chain head only. Used by pages that do not need balances. */
+/**
+ * The aggregate3 calldata the browser reposts on every load.
+ *
+ * Encoded here, at build time, because it is the same bytes for every visitor —
+ * shipping the string instead of an ABI coder keeps viem out of the client
+ * bundle. The head calls are appended last so the client can find them by
+ * position; readLive() relies on that order.
+ */
+export function liveSpec(): LiveSpec {
+  const calls = [
+    ...READABLE.map((w) => ({
+      target: MC,
+      allowFailure: true,
+      callData: encodeFunctionData({
+        abi: MULTICALL3_ABI,
+        functionName: 'getEthBalance',
+        args: [w.address as `0x${string}`],
+      }),
+    })),
+    ...(['getBlockNumber', 'getCurrentBlockTimestamp'] as const).map((fn) => ({
+      target: MC,
+      allowFailure: true,
+      callData: encodeFunctionData({ abi: MULTICALL3_ABI, functionName: fn }),
+    })),
+  ];
+
+  return {
+    rpc: RPC_URL,
+    to: MC,
+    data: encodeFunctionData({ abi: AGGREGATE3_ABI, functionName: 'aggregate3', args: [calls] }),
+    ids: READABLE.map((w) => w.id),
+  };
+}
+
 export async function readHead(): Promise<Head> {
   const [chainId, block] = await Promise.all([
     client.getChainId(),

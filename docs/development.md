@@ -7,23 +7,24 @@ take it off placeholder data.
 
 **Astro 7 + TypeScript.** No framework runtime is shipped to the browser.
 
-There is one reason for that choice. The current MSU Explorer is a Nuxt SPA:
-`curl` returns 190KB that contains the word "circulating" **zero** times. Build
-the disclosure page as an SPA and it reproduces the problem it set out to fix.
-Astro bakes the numbers and the charts into the HTML at build time.
+There is one reason for that choice. A supply figure that only exists after
+JavaScript has run is not really published: `curl` returns markup with none of
+the numbers in it, and neither does anything else that reads pages without
+executing them. Astro bakes the figures and the charts into the HTML at build
+time, and the live read layers on top of that rather than replacing it.
 
 ```
 $ curl .../index.html | grep -oE '[0-9]{1,3}(,[0-9]{3}){2,}'
 1,000,000,000
-223,963,962
+302,273,321
 ...
 ```
 
 Most of those numbers live inside the chart SVG, which is why the charts are
 server-rendered strings rather than a client-side drawing library.
 
-About 23KB of JavaScript reaches the browser: the freshness watcher, the range
-chips, the donut morph and the table filter.
+About 31KB of JavaScript reaches the browser: the live read, the freshness
+watcher, the range chips, the donut morph and the table filter.
 
 ## Running it
 

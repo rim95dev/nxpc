@@ -137,6 +137,9 @@ const clientI18n = JSON.stringify({
             <span class="mono" id="pillBlock">#{F.full(head.blockNumber)}</span>
             <span class="sep"></span>
             <span class="mono" id="pillAge">—</span>
+            {/* Only shown once a live read has landed — see the live block in SupplyView. */}
+            <span class="sep pill-live-sep"></span>
+            <span class="mono pill-live">{t.rpc.live}</span>
           </>
         )}
       </div>
@@ -208,43 +211,64 @@ const clientI18n = JSON.stringify({
   }));
 
   /* ---------- Freshness watch ----------
-     The live layer never overwrites the canonical numbers. It only compares the baked
-     block against the current one and shows how stale it is. One eth_blockNumber call. */
+     Compares the block the page was baked at against the current head and shows how
+     far behind it is.
+
+     A page that also does a live read gets its head for free: aggregate3 carries
+     getBlockNumber alongside the balances, so that page skips the first fetch here
+     and applies the head from the `nxpc:live` event instead. The periodic check stays
+     a bare eth_blockNumber — repeating the 13 KB balance read every 30 s to learn one
+     number would be the expensive way round. */
   const pill = document.getElementById('chainPill');
   const rpc = pill?.dataset.rpc;
   const fresh = document.getElementById('freshness');
   const bakedBlock = Number(fresh?.dataset.bakedBlock ?? 0);
   const BLOCK_TIME = 2.08; // seconds. Measured 2026-08-25
 
+  let headAt = 0;
+
+  function applyHead(now: number) {
+    headAt = Date.now();
+    const behind = now - bakedBlock;
+    const mins = (behind * BLOCK_TIME) / 60;
+
+    const blockEl = document.getElementById('pillBlock');
+    if (blockEl) blockEl.textContent = `#${F.full(now)}`;
+    const ageEl = document.getElementById('pillAge');
+    if (ageEl) ageEl.textContent = behind > 0 ? `${T.rpc.behind} −${F.full(behind)}` : T.rpc.latest;
+
+    if (fresh) {
+      const stale = mins > 60;
+      fresh.className = `freshness ${stale ? 'is-stale' : 'is-fresh'}`;
+      fresh.textContent = stale
+        ? `${T.foot.stale} · ${Math.round(mins / 60)}${T.foot.hour} ${T.foot.ago}`
+        : `${T.foot.fresh} · ${Math.round(mins)}${T.foot.min} ${T.foot.ago}`;
+    }
+  }
+
   async function checkFreshness() {
     if (!rpc || document.hidden) return;
+    // A live read just gave us the head — do not ask again for the same number.
+    if (Date.now() - headAt < 25_000) return;
     try {
       const res = await fetch(rpc, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_blockNumber', params: [] }),
       });
-      const now = Number(JSON.parse(await res.text()).result);
-      const behind = now - bakedBlock;
-      const mins = (behind * BLOCK_TIME) / 60;
-
-      const blockEl = document.getElementById('pillBlock');
-      if (blockEl) blockEl.textContent = `#${F.full(now)}`;
-      const ageEl = document.getElementById('pillAge');
-      if (ageEl) ageEl.textContent = behind > 0 ? `${T.rpc.behind} −${F.full(behind)}` : T.rpc.latest;
-
-      if (fresh) {
-        const stale = mins > 60;
-        fresh.className = `freshness ${stale ? 'is-stale' : 'is-fresh'}`;
-        fresh.textContent = stale
-          ? `${T.foot.stale} · ${Math.round(mins / 60)}${T.foot.hour} ${T.foot.ago}`
-          : `${T.foot.fresh} · ${Math.round(mins)}${T.foot.min} ${T.foot.ago}`;
-      }
+      applyHead(Number(JSON.parse(await res.text()).result));
     } catch {
       if (fresh) { fresh.className = 'freshness is-stale'; fresh.textContent = T.foot.rpcCheckFailed; }
     }
   }
-  checkFreshness();
+
+  document.addEventListener('nxpc:live', (ev) => {
+    applyHead((ev as CustomEvent<{ blockNumber: number }>).detail.blockNumber);
+  });
+
+  /* The live read is already in flight on pages that have one; let it land rather than
+     racing it with a second request for the same value. */
+  if (!document.getElementById('liveSpec')) checkFreshness();
   setInterval(checkFreshness, 30_000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkFreshness(); });
 </script>
