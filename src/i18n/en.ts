@@ -253,7 +253,7 @@ export const en = {
     min: 'm',
     hour: 'h',
     rpcCheckFailed: 'RPC check failed',
-    disclaimer: 'Placeholder figures · not an official disclosure',
+    disclaimer: 'Not an official disclosure',
   },
 };
 

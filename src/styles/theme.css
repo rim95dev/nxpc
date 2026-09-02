@@ -1152,7 +1152,15 @@ table.mini td.mono { font-size: 11.5px; }
   line-height: 1.1;
   color: var(--ink);
 }
-.hero-lede { margin: 0; max-width: 46ch; color: var(--ink-2); line-height: 1.6; }
+/* Justified, so the paragraph reads as a block rather than a ragged edge beside the
+   artwork. On a column this narrow justification alone opens rivers between words, so
+   hyphenation is on to give the browser somewhere to break. */
+.hero-lede {
+  margin: 0; max-width: 46ch; color: var(--ink-2); line-height: 1.6;
+  text-align: justify;
+  hyphens: auto;
+  text-wrap: pretty;
+}
 
 /* Where the NXPC coin mark sits. Held by aspect ratio so it grows with the screen
    width — fixing only the height makes it flat on wide screens.
