@@ -44,6 +44,7 @@ export const en = {
     addresses: 'Addresses',
     attributed: 'Known holders',
     chainNote: 'Route',
+    live: 'live',
     fromDoc: 'doc',
     ofTotal: 'of max supply',
     ofCirculating: 'of circulating supply',

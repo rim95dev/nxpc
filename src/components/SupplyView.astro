@@ -2,10 +2,11 @@
 import Site from '../layouts/Site.astro';
 import { buildPageData, TOTAL_ISSUED } from '../lib/supply';
 import { liveText } from '../lib/livemap';
-import { liveSpec } from '../lib/reads';
+import { avaxSupplySpec, liveSpec } from '../lib/reads';
 import { FOLD_CONFIG } from '../lib/model';
 import { localizeWallets, PLACEHOLDER_COUNT, POLICY_TIERS, TIERS, isPolicyDeduction, type Tier } from '../lib/wallets';
 import { localizeChains } from '../lib/chains';
+import { ADDRESSES } from '../lib/addresses';
 import { lastDays } from '../lib/window';
 import { domainOf } from '../lib/trend';
 import type { TierItem } from '../lib/model';
@@ -31,7 +32,7 @@ const s = data.supply;
 const head = data.snapshot.head;
 
 const wallets = localizeWallets(lang);
-const chains = localizeChains(lang);
+const chains = localizeChains(lang, data.chains);
 const labelOf = new Map<string, string>([
   ...wallets.map((w) => [w.id, w.label] as const),
   ...Object.entries(t.tier) as [string, string][],
@@ -131,7 +132,10 @@ const chainSegments: Segment[] = [
   ...chains.map((c): Segment => ({
     id: `chain-${c.id}`, label: c.label, value: c.circulating,
     color: c.id === 'avalanche' ? 'var(--c-bridge)' : c.id === 'bnb' ? 'var(--lock-2)' : 'var(--lock-4)',
-    sub: c.note, subLabel: t.seg.chainNote, tag: t.seg.fromDoc, tagKind: 'no',
+    /* Only the chains still carried from the document say so — Avalanche is read
+       for itself now, and labelling a live figure «per the document» would be wrong. */
+    sub: c.note, subLabel: t.seg.chainNote,
+    ...(c.live ? { tag: t.seg.live, tagKind: 'yes' as const } : { tag: t.seg.fromDoc, tagKind: 'no' as const }),
   })),
   {
     id: 'chain-henesys', label: 'Henesys', value: s.strictHenesys, color: 'var(--c-circ)',
@@ -210,6 +214,9 @@ const seriesJson = JSON.stringify(data.series.points);
    the same bytes for every visitor. */
 const LIVE = liveText(s, F);
 const liveJson = JSON.stringify(liveSpec());
+/* The C-Chain addresses we operate come out of the managed-address registry — the
+   supply figure and the address tab must agree on what «ours» means. */
+const liveAvaxJson = JSON.stringify(avaxSupplySpec(ADDRESSES));
 const foldJson = JSON.stringify(FOLD_CONFIG);
 ---
 
@@ -373,6 +380,7 @@ const foldJson = JSON.stringify(FOLD_CONFIG);
       <script type="application/json" id="seriesData" set:html={seriesJson} is:inline />
       <script type="application/json" id="liveSpec" set:html={liveJson} is:inline />
       <script type="application/json" id="foldConfig" set:html={foldJson} is:inline />
+      <script type="application/json" id="liveAvaxSpec" set:html={liveAvaxJson} is:inline />
 
       <ul class="chart-key">
         <li><span class="k-line k-solid"></span>{t.chart.legendCirculating}</li>
@@ -538,6 +546,7 @@ const foldJson = JSON.stringify(FOLD_CONFIG);
   import * as D from '../lib/donut';
   import { lastDays } from '../lib/window';
   import { readLive } from '../lib/live';
+  import { offHenesysFrom, spreadLive } from '../lib/fold';
   import { liveText } from '../lib/livemap';
   import { foldWith } from '../lib/fold';
   import { boxOf as trendBox, domainOf, geom } from '../lib/trend';
@@ -748,6 +757,7 @@ const foldJson = JSON.stringify(FOLD_CONFIG);
   if (liveRaw) {
     const spec = JSON.parse(liveRaw);
     const foldCfg = JSON.parse(document.getElementById('foldConfig')?.textContent ?? 'null');
+    const avaxRaw = document.getElementById('liveAvaxSpec')?.textContent;
     const pill = document.getElementById('chainPill');
 
     /* A slice's value per the new model. `static` rows are surveyed figures from a
@@ -812,9 +822,17 @@ const foldJson = JSON.stringify(FOLD_CONFIG);
        what gets an endpoint to rate-limit you. */
     const run = () => {
       if (document.hidden) return;
-      readLive(spec)
-        .then((live) => {
-          applyLive(foldWith(foldCfg, live.balances));
+      /* Two chains, read together. Avalanche only moves free float, so a failure
+         there leaves that one figure on the built-in value and costs nothing else. */
+      const avax = avaxRaw
+        ? readLive(JSON.parse(avaxRaw))
+            .then((r) => offHenesysFrom(r.balances, foldCfg.surveyedOffHenesys ?? 0).offHenesys)
+            .catch(() => null)
+        : Promise.resolve(null);
+      Promise.all([readLive(spec), avax])
+        .then(([live, off]) => {
+          const cfg = off === null ? foldCfg : { ...foldCfg, offHenesys: off };
+          applyLive(foldWith(cfg, spreadLive(cfg, live.balances)));
           pill?.setAttribute('data-live', '');
           document.dispatchEvent(new CustomEvent('nxpc:live', { detail: live }));
         })

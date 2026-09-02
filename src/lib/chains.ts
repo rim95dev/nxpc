@@ -15,6 +15,8 @@ const Schema = z.object({
         label: L10n,
         issued: z.number().nonnegative(),
         circulating: z.number().nonnegative(),
+        /** Read from that chain at run time; the figures here are the fallback. */
+        live: z.boolean().optional(),
         note: L10n,
       }),
     )
@@ -42,19 +44,45 @@ export interface LocalizedChain {
   label: string;
   issued: number;
   circulating: number;
+  /** True when these came from the chain just now rather than the document. */
+  live: boolean;
   note: string;
 }
 
-export const localizeChains = (lang: Lang): LocalizedChain[] =>
+export const localizeChains = (lang: Lang, live?: Record<string, { issued: number; circulating: number }>): LocalizedChain[] =>
   CHAINS.chains.map((c) => ({
     id: c.id,
     label: c.label[lang],
-    issued: c.issued,
-    circulating: c.circulating,
+    issued: live?.[c.id]?.issued ?? c.issued,
+    circulating: live?.[c.id]?.circulating ?? c.circulating,
+    live: c.live === true && live?.[c.id] !== undefined,
     note: c.note[lang],
   }));
 
-/** Sum of the effective circulating supply outside Henesys. These are document-basis figures, not live on-chain values. */
+/**
+ * The CCIP token pool on C-Chain. It holds the collateral for the wrapped NXPC on
+ * BNB and Monad, so its balance is not circulating on Avalanche — those chains
+ * report that supply themselves and counting the pool as well would double it.
+ * Identified from the token's holder list: its balance matches the surveyed figure
+ * to the cent (13,730,643.34).
+ */
+export const AVAX_CCIP_POOL = '0x0D9A14a6eD561770295BcCCF1995ae5B026a65d6' as const;
+
+/** The chains still carried from the document, summed. The live path adds Avalanche to this. */
+export const SURVEYED_OFF_HENESYS = CHAINS.chains
+  .filter((c) => !c.live)
+  .reduce((n, c) => n + c.circulating, 0);
+
+/** The chains this page reads for itself, rather than carrying a surveyed figure. */
+export const LIVE_CHAINS = CHAINS.chains.filter((c) => c.live).map((c) => c.id);
+
+/**
+ * Fallback sum of the circulating supply outside Henesys.
+ *
+ * Used when the live read is unavailable. Avalanche is read at run time — see
+ * offHenesysCirculating() in reads.ts — so in normal operation only BNB and Monad
+ * come from the document.
+ */
 export const OFF_HENESYS_CIRCULATING = CHAINS.chains.reduce(
   (n, c) => n + c.circulating,
   0,

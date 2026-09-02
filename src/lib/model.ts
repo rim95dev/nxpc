@@ -1,6 +1,7 @@
 import { WALLETS, POLICY_TIERS, TIERS, type Tier } from './wallets';
-import { OFF_HENESYS_CIRCULATING } from './chains';
+import { OFF_HENESYS_CIRCULATING, SURVEYED_OFF_HENESYS } from './chains';
 import { foldWith, type FoldConfig } from './fold';
+export { foldWith };
 
 /**
  * Total issued supply. NXPC on Henesys is a native gas token with no contract,
@@ -62,12 +63,13 @@ export const FOLD_CONFIG: FoldConfig = {
     tier: w.tier,
     strictCirculating: w.strictCirculating,
     ...(w.share !== undefined ? { share: w.share } : {}),
-    ...(w.static !== undefined ? { fromDoc: true } : {}),
+    ...(w.static !== undefined ? { fromDoc: true, static: w.static } : {}),
   })),
   tiers: [...TIERS],
   policyTiers: POLICY_TIERS,
   totalIssued: TOTAL_ISSUED,
   offHenesys: OFF_HENESYS_CIRCULATING,
+  surveyedOffHenesys: SURVEYED_OFF_HENESYS,
 };
 
 /** Build-time fold, against the real registry. */

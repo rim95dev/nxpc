@@ -17,6 +17,8 @@ export interface WalletMeta {
   tier: Tier;
   strictCirculating: boolean;
   share?: number;
+  /** A document aggregate rather than an address, so no read returns it. */
+  static?: number;
   /** Present when the value is a document figure rather than an on-chain read. */
   fromDoc?: boolean;
 }
@@ -27,9 +29,31 @@ export interface FoldConfig {
   policyTiers: Tier[];
   totalIssued: number;
   offHenesys: number;
+  /** The document-carried part, for the client to add its live Avalanche figure to. */
+  surveyedOffHenesys?: number;
 }
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
+
+/**
+ * Turns a raw per-id read into the values the fold expects.
+ *
+ * Two entries can share one address, split by `share` — the NextMeso collateral is
+ * partly the company's and partly the users'. A read keyed by id hands both entries
+ * the whole address balance, so without this the company half is counted at full
+ * size and free float comes out several million too low. Entries with no address at
+ * all take their document figure.
+ *
+ * The build path already does this in reads.ts spread(), against the same registry;
+ * the live path needs it too, and only the registry metadata to do it.
+ */
+export function spreadLive(cfg: FoldConfig, raw: Record<string, number>): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const w of cfg.wallets) {
+    out[w.id] = w.static !== undefined ? w.static : (raw[w.id] ?? 0) * (w.share ?? 1);
+  }
+  return out;
+}
 
 /**
  * Folds the balance map down the deduction ladder.
@@ -88,5 +112,32 @@ export function foldWith(cfg: FoldConfig, balances: Record<string, number>): Sup
     nonCirculating: totalIssued - circulating - valueOf('burn'),
     bridged: valueOf('bridge'),
     balances,
+  };
+}
+
+/**
+ * Avalanche's share of free float, from a C-Chain read.
+ *
+ *   circulating = totalSupply − CCIP pool − the addresses we operate there
+ *
+ * The pool backs the wrapped NXPC on BNB and Monad, which report that supply
+ * themselves, so leaving it in counts it twice. Our own balances come out for the
+ * same reason they do on Henesys: this figure feeds free float, which is what is
+ * *not* under issuer control.
+ *
+ * `surveyed` is the chains still carried from the document. It arrives as a number
+ * rather than being read from chains.yaml here — that file brings a YAML parser and
+ * a schema with it, and this module has to stay light enough for the browser.
+ */
+export function offHenesysFrom(balances: Record<string, number>, surveyed: number) {
+  const total = balances.totalSupply ?? 0;
+  const pool = balances.pool ?? 0;
+  const ours = Object.entries(balances)
+    .filter(([k]) => k !== 'totalSupply' && k !== 'pool')
+    .reduce((n, [, v]) => n + v, 0);
+  const avalanche = Math.max(0, total - pool - ours);
+  return {
+    offHenesys: avalanche + surveyed,
+    chains: { avalanche: { issued: total, circulating: avalanche } },
   };
 }

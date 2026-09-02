@@ -1,5 +1,6 @@
 import { createPublicClient, encodeFunctionData, http, parseAbi, formatUnits } from 'viem';
 import { avalanche, henesys, AVAX_RPC, C_NXPC, RPC_URL, MULTICALL_CHUNK } from './chain';
+import { AVAX_CCIP_POOL } from './chains';
 import { WALLETS, READABLE } from './wallets';
 import type { LiveSpec } from './live';
 
@@ -143,6 +144,45 @@ export function liveSpec(): LiveSpec {
  * a token, so an account's NXPC is not its account balance. Shape matches liveSpec so
  * the client decodes both with the same function.
  */
+/**
+ * The C-Chain half of the supply figure.
+ *
+ * Avalanche circulating supply is not a number anyone has to be told:
+ *
+ *   totalSupply − CCIP pool − the addresses we operate there
+ *
+ * The pool backs the wrapped NXPC on BNB and Monad, which those chains report
+ * separately, so leaving it in counts that supply twice. Our own C-Chain balances
+ * come out for the same reason they do on Henesys — this figure feeds free float,
+ * which is what is *not* under issuer control.
+ *
+ * BNB and Monad stay as surveyed figures; neither is read here.
+ */
+export function avaxSupplySpec(entries: { id: string; address: string; chain: string }[]): LiveSpec {
+  const ours = entries.filter((e) => e.chain === 'c-chain');
+  const bal = (addr: string) => ({
+    target: C_NXPC,
+    allowFailure: true,
+    callData: encodeFunctionData({ abi: ERC20_ABI, functionName: 'balanceOf', args: [addr as `0x${string}`] }),
+  });
+  const calls = [
+    { target: C_NXPC, allowFailure: true, callData: encodeFunctionData({ abi: ERC20_ABI, functionName: 'totalSupply' }) },
+    bal(AVAX_CCIP_POOL),
+    ...ours.map((e) => bal(e.address)),
+    ...(['getBlockNumber', 'getCurrentBlockTimestamp'] as const).map((fn) => ({
+      target: AVAX_MC,
+      allowFailure: true,
+      callData: encodeFunctionData({ abi: MULTICALL3_ABI, functionName: fn }),
+    })),
+  ];
+  return {
+    rpc: AVAX_RPC,
+    to: AVAX_MC,
+    data: encodeFunctionData({ abi: AGGREGATE3_ABI, functionName: 'aggregate3', args: [calls] }),
+    ids: ['totalSupply', 'pool', ...ours.map((e) => e.id)],
+  };
+}
+
 export function liveAvaxAddressSpec(entries: { id: string; address: string; chain: string }[]): LiveSpec {
   const rows = entries.filter((e) => e.chain === 'c-chain');
   const calls = [

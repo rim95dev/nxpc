@@ -9,16 +9,22 @@
 # Everything that left Henesys went to Avalanche only, and the BNB·Monad supply is
 # already inside the Avalanche total. So you must not just add the four chains up.
 
+# `asOf` applies to the figures that are not read live — BNB and Monad.
 asOf: "2026-08-29"
 source:
   en: "Supply definition document"
 
 chains:
+  # Read live, so the numbers below are only a fallback for when the endpoint is
+  # unreachable. Avalanche is the one chain this page can read for itself:
+  #   circulating = NXPC totalSupply − CCIP pool − the addresses we operate there
+  # The pool is collateral for the BNB and Monad wrapped tokens; leaving it in would
+  # count that supply twice, once here and once on those chains below.
   - id: avalanche
     label: { en: Avalanche C-Chain }
+    live: true
     issued: 127852669
     circulating: 111383210
-    # CCIP TokenPool 13,730,643 is collateral for the BNB·Monad wrapped tokens, so it is excluded — not deducting it double-counts
     note: { en: "ERC-20, bridged from Henesys" }
 
   - id: bnb
