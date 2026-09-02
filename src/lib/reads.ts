@@ -353,6 +353,16 @@ export async function readAddresses(
 
   const balances: Record<string, number | null> = {};
   const tokens: AddressReadResult['tokens'] = {};
+  /**
+   * Balances only.
+   *
+   * A balance that did not come back leaves a hole in the total, so it is worth
+   * saying so on the page. Token metadata is decoration: plenty of perfectly
+   * healthy contracts do not implement every field — a non-enumerable ERC-721 has
+   * no totalSupply, an ERC-1155 has neither name nor symbol. Listing those as
+   * «read failed» reports a fault that does not exist, and buries the balance
+   * failures that do matter.
+   */
   const failures: string[] = [];
   // null means "not read" — it has to stay distinct from 0 or the totals lie.
   for (const e of entries) balances[e.id] = null;
@@ -400,7 +410,8 @@ export async function readAddresses(
       });
       meta.forEach((m, i) => {
         const r = res[onAvax.length + i]!;
-        if (r.status !== 'success') return failures.push(`${m.id}.${m.field}`);
+        // A missing field is not a failure — see the note above `failures`.
+        if (r.status !== 'success') return;
         const t = (tokens[m.id] ??= {});
         if (m.field === 'name') t.name = r.result as string;
         else if (m.field === 'symbol') t.symbol = r.result as string;
@@ -426,7 +437,7 @@ export async function readAddresses(
   jobs.forEach((job, i) => {
     const r = results[i];
     if (r?.status !== 'success' || r.result === undefined) {
-      failures.push(job.kind === 'native' ? job.id : `${job.id}.${job.field}`);
+      if (job.kind === 'native') failures.push(job.id);
       return;
     }
     if (job.kind === 'native') {
