@@ -101,16 +101,22 @@ export const LANGS: Lang[] = ['en'];   // add a locale here and it builds
 |---|---|
 | push to `main` | rebuild and deploy |
 | `0 0 * * 4` (Thursday) | add a point to the series, then rebuild |
-| `20 */3 * * *` (every 3h) | rebuild only — caps how stale the current numbers get |
+| `20 3 * * *` (daily) | rebuild only — refreshes the fallback the live read sits on |
 | manual dispatch | rebuild, with snapshot collection as an input |
 
-**The current figures are baked, not live.** The browser makes one
-`eth_blockNumber` call to compare against the block the page was built at, and
-shows FRESH or STALE — it never re-reads balances. So the numbers on screen are
-exactly as old as the last build, which is why the rebuild cron runs every three
-hours rather than daily.
+**The rebuild is not what keeps the figures current** — the browser reads
+balances live on load. It refreshes the built-in fallback that `curl` and a
+JavaScript-less reader get, which daily covers. Every extra run is also another
+Pages deployment, and those accumulate; the deploy job prunes all but the newest
+five.
 
-The frequent cron runs at minute 20: schedules on the hour queue behind everyone
+The freshness badge follows the same logic. Once a live read lands it reads
+**LIVE**, with the age of the build alongside it; STALE is reserved for a build
+older than 26 hours with no live read to stand in front of it. A threshold
+shorter than the cron would mark the page stale for most of every cycle and mean
+nothing.
+
+The cron runs at minute 20: schedules on the hour queue behind everyone
 else's, and 00:00 already belongs to the weekly snapshot run.
 
 Thursday is not arbitrary: the backfilled grid runs on Thursdays, so continuing

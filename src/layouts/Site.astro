@@ -226,9 +226,23 @@ const clientI18n = JSON.stringify({
   const BLOCK_TIME = 2.08; // seconds. Measured 2026-08-25
 
   let headAt = 0;
+  let isLive = false;
 
-  function applyHead(now: number) {
+  /* How old the built-in figures may get before that is worth flagging. Tied to the
+     rebuild cron (daily), not to how fast blocks are produced — a threshold shorter
+     than the cron would mark the page stale for most of every cycle, which says
+     nothing about whether anything is actually wrong. */
+  const STALE_AFTER_MIN = 26 * 60;
+
+  /**
+   * `live` means the figures on screen were read from the chain just now, so the age
+   * of the build says nothing about them — only about the fallback behind them and
+   * the trend series. Without it the badge would call a page stale while it was
+   * displaying numbers seconds old.
+   */
+  function applyHead(now: number, live = false) {
     headAt = Date.now();
+    isLive = isLive || live;
     const behind = now - bakedBlock;
     const mins = (behind * BLOCK_TIME) / 60;
 
@@ -237,13 +251,16 @@ const clientI18n = JSON.stringify({
     const ageEl = document.getElementById('pillAge');
     if (ageEl) ageEl.textContent = behind > 0 ? `${T.rpc.behind} −${F.full(behind)}` : T.rpc.latest;
 
-    if (fresh) {
-      const stale = mins > 60;
-      fresh.className = `freshness ${stale ? 'is-stale' : 'is-fresh'}`;
-      fresh.textContent = stale
-        ? `${T.foot.stale} · ${Math.round(mins / 60)}${T.foot.hour} ${T.foot.ago}`
-        : `${T.foot.fresh} · ${Math.round(mins)}${T.foot.min} ${T.foot.ago}`;
+    if (!fresh) return;
+    const age = mins < 90 ? `${Math.round(mins)}${T.foot.min}` : `${Math.round(mins / 60)}${T.foot.hour}`;
+    if (isLive) {
+      fresh.className = 'freshness is-fresh';
+      fresh.textContent = `${T.foot.liveNow} · ${T.foot.bakedAge} ${age} ${T.foot.ago}`;
+      return;
     }
+    const stale = mins > STALE_AFTER_MIN;
+    fresh.className = `freshness ${stale ? 'is-stale' : 'is-fresh'}`;
+    fresh.textContent = `${stale ? T.foot.stale : T.foot.fresh} · ${age} ${T.foot.ago}`;
   }
 
   async function checkFreshness() {
@@ -263,11 +280,13 @@ const clientI18n = JSON.stringify({
   }
 
   document.addEventListener('nxpc:live', (ev) => {
-    applyHead((ev as CustomEvent<{ blockNumber: number }>).detail.blockNumber);
+    applyHead((ev as CustomEvent<{ blockNumber: number }>).detail.blockNumber, true);
   });
 
+  document.addEventListener('nxpc:live-failed', () => { void checkFreshness(); });
+
   /* The live read is already in flight on pages that have one; let it land rather than
-     racing it with a second request for the same value. */
+     racing it with a second request for the same value. If it fails it says so, above. */
   if (!document.getElementById('liveSpec')) checkFreshness();
   setInterval(checkFreshness, 30_000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkFreshness(); });

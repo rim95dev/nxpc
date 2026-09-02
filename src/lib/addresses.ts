@@ -20,9 +20,10 @@ const EntrySchema = z.object({
   category: z.enum(['bridge', 'vault', 'treasury', 'ops', 'token', 'infra']),
   chain: z.enum(['henesys', 'c-chain']),
   label: L10n,
-  owner: L10n,
   address: z.string().regex(/^0x[0-9a-fA-F]{40}$/, 'not a valid 20-byte address'),
   standard: z.enum(['erc20', 'erc721']).optional(),
+  /** For an executor wallet, the contracts it is authorised to call. */
+  executes: z.array(z.string().min(1)).nonempty().optional(),
   /** A temporary balance used only while the placeholder marker is present. Ignored with real data. */
   balanceHint: z.number().nonnegative().optional(),
 });
@@ -33,13 +34,18 @@ const RegistrySchema = z
   .refine((rows) => new Set(rows.map((r) => r.id)).size === rows.length, {
     message: 'duplicate id',
   })
+  /* Per chain, not globally. The deployer is shared across chains, so a C-Chain
+     contract legitimately sits at the same address as an unrelated Henesys one. */
   .refine(
     (rows) =>
-      new Set(rows.map((r) => r.address.toLowerCase())).size === rows.length,
-    { message: 'duplicate address' },
+      new Set(rows.map((r) => `${r.chain}:${r.address.toLowerCase()}`)).size === rows.length,
+    { message: 'the same address is listed twice on one chain' },
   )
   .refine((rows) => rows.every((r) => r.type === 'contract' || !r.standard), {
     message: 'standard may only be attached to contracts',
+  })
+  .refine((rows) => rows.every((r) => r.type === 'eoa' || !r.executes), {
+    message: 'executes belongs to a wallet, not a contract',
   });
 
 export type AddressEntry = z.infer<typeof EntrySchema>;
@@ -75,8 +81,8 @@ export interface LocalizedAddress {
   chain: AddressEntry['chain'];
   standard?: AddressEntry['standard'];
   label: string;
-  owner: string;
   address: string;
+  executes?: string[];
   /** null means it was not read — this must be distinguished from 0. */
   balance: number | null;
   token?: TokenInfo;
@@ -93,8 +99,8 @@ export function localizeAddresses(
     category: a.category,
     chain: a.chain,
     ...(a.standard ? { standard: a.standard } : {}),
+    ...(a.executes ? { executes: [...a.executes] } : {}),
     label: a.label[lang],
-    owner: a.owner[lang],
     address: a.address,
     balance: balances[a.id] ?? null,
     ...(tokens[a.id] ? { token: tokens[a.id] } : {}),

@@ -22,7 +22,7 @@ export const en = {
     { at: 1_000, suffix: 'K' },
   ] as { at: number; suffix: string }[],
   title: 'NXPC circulation',
-  description: 'NXPC circulating supply and bridged amount, read from the henesys public RPC.',
+  description: 'NXPC circulating supply and bridged amount, read from public RPCs on every load.',
   brand: 'NXPC Supply',
 
   langName: 'English',
@@ -53,6 +53,7 @@ export const en = {
   },
 
   addr: {
+    executes: 'executes',
     title: 'Managed addresses',
     description: 'Contracts and EOAs operated by the team, with on-chain balances.',
     count: 'entries',
@@ -68,7 +69,6 @@ export const en = {
     colAddress: 'Address',
     colBalance: 'Balance (NXPC)',
     colToken: 'Token',
-    colOwner: 'Owner',
     typeContract: 'contract',
     typeEoa: 'EOA',
     filterAll: 'All',
@@ -76,8 +76,8 @@ export const en = {
     filterEoa: 'EOAs',
     copy: 'Copy',
     copied: 'Copied',
-    notRead: 'not read',
-    notReadWhy: 'other chain',
+    notRead: 'no read',
+    notReadWhy: 'the RPC for this chain did not answer',
     cat: {
       bridge: 'Bridge',
       vault: 'Vault',
@@ -238,6 +238,8 @@ export const en = {
     freshness: 'Freshness',
     build: 'BUILD',
     fresh: 'FRESH',
+    liveNow: 'LIVE',
+    bakedAge: 'built',
     stale: 'STALE',
     ago: 'ago',
     min: 'm',

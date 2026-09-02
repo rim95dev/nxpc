@@ -64,8 +64,7 @@ inside the total.
 
 ## Where the numbers come from
 
-Every figure is read from the **public Henesys RPC**
-(`https://henesys-rpc.msu.io`) — twice, on purpose.
+Every figure is read from a **public RPC** — twice, on purpose.
 
 It is read at build time and written into the HTML, so the numbers are in the
 page itself: `curl` returns them, and so does a reader with JavaScript turned
@@ -78,6 +77,11 @@ That live read is a single request. Every wallet balance and the chain head are
 packed into one `aggregate3` call, so adding wallets to the registry changes the
 size of the request, never the number of them.
 
+Supply figures come from Henesys (`henesys-rpc.msu.io`) and nowhere else. The
+address tab additionally reads Avalanche C-Chain through Ava Labs' public node,
+because NXPC exists there as an ERC-20 and those balances are worth showing; that
+endpoint has no bearing on any supply figure.
+
 Every wallet in a hover card links to that address on
 [Snowtrace](https://68414.snowtrace.io), where the same balance can be read
 independently.
@@ -85,7 +89,7 @@ independently.
 | What | When |
 |---|---|
 | The headline figures and the composition | Live, on every visit |
-| The built-in figures behind them | Rebuilt every 3 hours |
+| The built-in figures behind them | Rebuilt daily |
 | A new point on the trend | Added weekly, on Thursdays |
 | Everything before that | Reconstructed from archive reads, weekly from 2025-05-15 |
 

@@ -1,7 +1,7 @@
 # NXPC outside Henesys.
 #
-# This page uses only one public RPC, Henesys. The other chains are not read
-# on-chain — the surveyed figures from the supply definition document are carried
+# The supply figures are read from one chain, Henesys. The other chains are not read
+# on-chain here — the surveyed figures from the supply definition document are carried
 # over as they are, and the screen marks them «per the document» together with the as-of date.
 #
 # Bridge structure (section 3 of the document):

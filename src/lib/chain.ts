@@ -22,6 +22,42 @@ export const henesys = defineChain({
 });
 
 /**
+ * Avalanche C-Chain, for the managed-address tab only.
+ *
+ * `api.avax.network` is Ava Labs' own public API node — the endpoint their docs
+ * hand out — and it answers browser requests: the preflight echoes the caller's
+ * origin (checked 2026-09-02 for both the deployed site and localhost).
+ *
+ * The supply figures do **not** come from here. Off-Henesys amounts stay as the
+ * surveyed numbers in chains.yaml, so this endpoint going down can cost the
+ * address tab its C-Chain balances and nothing else.
+ */
+export const AVAX_RPC = 'https://api.avax.network/ext/bc/C/rpc';
+
+export const avalanche = defineChain({
+  id: 43114,
+  name: 'Avalanche C-Chain',
+  nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
+  rpcUrls: { default: { http: [AVAX_RPC] } },
+  blockExplorers: { default: { name: 'Snowtrace', url: 'https://snowtrace.io' } },
+  contracts: {
+    // Multicall3's canonical address, the same on every chain that has it.
+    multicall3: { address: '0xcA11bde05977b3631167028862bE2a173976CA11' },
+  },
+});
+
+/**
+ * NXPC on C-Chain is an ERC-20, not the native coin, so a C-Chain address holds
+ * it through balanceOf rather than in its account balance. That is what the
+ * balance column shows there — AVAX would be a different unit in the same column.
+ */
+export const C_NXPC = '0x5E0E90E268BC247Cc850c789A0DB0d5c7621fb59' as const;
+
+/** Block explorer link for a C-Chain address. */
+export const avaxExplorerAddress = (address: string) =>
+  `${avalanche.blockExplorers.default.url}/address/${address}`;
+
+/**
  * JSON-RPC batch limit — from 11 requests on, it returns HTTP 500 "too many requests" as plain text.
  * Multicall3 does not run into this limit, but it must be respected when batching
  * calls that cannot go through multicall (eth_getBlockByNumber and the like).

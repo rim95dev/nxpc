@@ -1,5 +1,5 @@
 import { createPublicClient, encodeFunctionData, http, parseAbi, formatUnits } from 'viem';
-import { henesys, RPC_URL, MULTICALL_CHUNK } from './chain';
+import { avalanche, henesys, AVAX_RPC, C_NXPC, RPC_URL, MULTICALL_CHUNK } from './chain';
 import { WALLETS, READABLE } from './wallets';
 import type { LiveSpec } from './live';
 
@@ -16,6 +16,10 @@ const MULTICALL3_ABI = parseAbi([
 ]);
 
 const MC = henesys.contracts.multicall3.address;
+/** Second client, address tab only. See the note on AVAX_RPC. */
+const avaxClient = createPublicClient({ chain: avalanche, transport: http(AVAX_RPC, { batch: false }) });
+const AVAX_MC = avalanche.contracts.multicall3.address;
+
 /** aggregate3's own signature. viem uses it internally; encoding calldata by hand needs it spelled out. */
 const AGGREGATE3_ABI = parseAbi([
   'struct Call3 { address target; bool allowFailure; bytes callData; }',
@@ -126,6 +130,71 @@ export function liveSpec(): LiveSpec {
   };
 }
 
+/**
+ * The address-tab counterpart of liveSpec(): native balances for the Henesys rows.
+ *
+ * C-Chain rows are left out — reading them needs a second RPC, and the page uses one.
+ * Same shape as liveSpec, so the client decodes both with the same function.
+ */
+/**
+ * The C-Chain half of the address tab's live read.
+ *
+ * Calls balanceOf on the NXPC ERC-20 rather than getEthBalance — on C-Chain, NXPC is
+ * a token, so an account's NXPC is not its account balance. Shape matches liveSpec so
+ * the client decodes both with the same function.
+ */
+export function liveAvaxAddressSpec(entries: { id: string; address: string; chain: string }[]): LiveSpec {
+  const rows = entries.filter((e) => e.chain === 'c-chain');
+  const calls = [
+    ...rows.map((e) => ({
+      target: C_NXPC,
+      allowFailure: true,
+      callData: encodeFunctionData({
+        abi: ERC20_ABI,
+        functionName: 'balanceOf',
+        args: [e.address as `0x${string}`],
+      }),
+    })),
+    ...(['getBlockNumber', 'getCurrentBlockTimestamp'] as const).map((fn) => ({
+      target: AVAX_MC,
+      allowFailure: true,
+      callData: encodeFunctionData({ abi: MULTICALL3_ABI, functionName: fn }),
+    })),
+  ];
+  return {
+    rpc: AVAX_RPC,
+    to: AVAX_MC,
+    data: encodeFunctionData({ abi: AGGREGATE3_ABI, functionName: 'aggregate3', args: [calls] }),
+    ids: rows.map((e) => e.id),
+  };
+}
+
+export function liveAddressSpec(entries: { id: string; address: string; chain: string }[]): LiveSpec {
+  const rows = entries.filter((e) => e.chain === 'henesys');
+  const calls = [
+    ...rows.map((e) => ({
+      target: MC,
+      allowFailure: true,
+      callData: encodeFunctionData({
+        abi: MULTICALL3_ABI,
+        functionName: 'getEthBalance',
+        args: [e.address as `0x${string}`],
+      }),
+    })),
+    ...(['getBlockNumber', 'getCurrentBlockTimestamp'] as const).map((fn) => ({
+      target: MC,
+      allowFailure: true,
+      callData: encodeFunctionData({ abi: MULTICALL3_ABI, functionName: fn }),
+    })),
+  ];
+  return {
+    rpc: RPC_URL,
+    to: MC,
+    data: encodeFunctionData({ abi: AGGREGATE3_ABI, functionName: 'aggregate3', args: [calls] }),
+    ids: rows.map((e) => e.id),
+  };
+}
+
 export async function readHead(): Promise<Head> {
   const [chainId, block] = await Promise.all([
     client.getChainId(),
@@ -214,6 +283,7 @@ const ERC20_ABI = parseAbi([
   'function symbol() view returns (string)',
   'function decimals() view returns (uint8)',
   'function totalSupply() view returns (uint256)',
+  'function balanceOf(address owner) view returns (uint256)',
 ]);
 
 const ERC721_ABI = parseAbi([
@@ -255,6 +325,11 @@ export async function readAddresses(
   const jobs: Job[] = [];
   const contracts: unknown[] = [];
 
+  /* C-Chain rows read the NXPC ERC-20 instead of a native balance, through their
+     own client and their own multicall. Kept in a separate pass so a failure on one
+     chain cannot take the other's balances down with it. */
+  const onAvax = entries.filter((e) => e.chain === 'c-chain');
+
   for (const e of entries) {
     if (e.chain !== 'henesys') continue;
 
@@ -286,6 +361,56 @@ export async function readAddresses(
   // Collect the raw values separately and convert once decimals is settled — so we do not depend on response order.
   const rawSupply = new Map<string, bigint>();
   const isErc20 = new Map(entries.map((e) => [e.id, e.standard === 'erc20']));
+
+  /* C-Chain pass. One aggregate3 for the NXPC balances, plus the token metadata for
+     any C-Chain token row. Wrapped so an outage there leaves the Henesys numbers alone. */
+  if (onAvax.length) {
+    try {
+      const calls = onAvax.map((e) => ({
+        address: C_NXPC as `0x${string}`,
+        abi: ERC20_ABI,
+        functionName: 'balanceOf' as const,
+        args: [e.address as `0x${string}`],
+      }));
+      const meta = onAvax
+        .filter((e) => e.standard)
+        .flatMap((e) =>
+          (e.standard === 'erc20'
+            ? (['name', 'symbol', 'decimals', 'totalSupply'] as const)
+            : (['name', 'symbol', 'totalSupply'] as const)
+          ).map((field) => ({ id: e.id, field, address: e.address, standard: e.standard! })),
+        );
+      const res = (await avaxClient.multicall({
+        contracts: [
+          ...calls,
+          ...meta.map((m) => ({
+            address: m.address as `0x${string}`,
+            abi: (m.standard === 'erc20' ? ERC20_ABI : ERC721_ABI) as never,
+            functionName: m.field,
+            args: [],
+          })),
+        ] as never,
+        allowFailure: true,
+        multicallAddress: AVAX_MC,
+      })) as { status: 'success' | 'failure'; result?: unknown }[];
+      onAvax.forEach((e, i) => {
+        const r = res[i]!;
+        if (r.status === 'success') balances[e.id] = Number(formatUnits(r.result as bigint, 18));
+        else failures.push(`${e.id}.balance`);
+      });
+      meta.forEach((m, i) => {
+        const r = res[onAvax.length + i]!;
+        if (r.status !== 'success') return failures.push(`${m.id}.${m.field}`);
+        const t = (tokens[m.id] ??= {});
+        if (m.field === 'name') t.name = r.result as string;
+        else if (m.field === 'symbol') t.symbol = r.result as string;
+        else if (m.field === 'decimals') t.decimals = Number(r.result);
+        else rawSupply.set(m.id, r.result as bigint);
+      });
+    } catch (err) {
+      failures.push(`c-chain: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
 
   if (!jobs.length) return { balances, tokens, failures };
 

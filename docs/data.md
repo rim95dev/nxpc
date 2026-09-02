@@ -3,13 +3,25 @@
 Where every number on the page comes from, what validates it, and what happens
 when a read fails.
 
-## RPC — public endpoint only
+## RPC — public endpoints only
 
-| Item | Value |
-|---|---|
-| Endpoint | `https://henesys-rpc.msu.io` |
-| Chain id | `68414` (`0x10b3e`) |
-| Multicall3 | `0x99423C88EB5723A590b4C644426069042f137B9e` (reads only) |
+Two, and they do different jobs. **Every supply figure comes from Henesys alone.**
+The Avalanche endpoint exists for the address tab, so a C-Chain row can show a
+balance instead of a dash; if it is unreachable, those cells stay empty and
+nothing else on the site changes.
+
+| | Henesys | Avalanche C-Chain |
+|---|---|---|
+| Endpoint | `https://henesys-rpc.msu.io` | `https://api.avax.network/ext/bc/C/rpc` |
+| Chain id | `68414` (`0x10b3e`) | `43114` |
+| Multicall3 | `0x99423C88EB5723A590b4C644426069042f137B9e` | `0xcA11bde05977b3631167028862bE2a173976CA11` |
+| Used for | supply figures, Henesys balances | C-Chain balances on the address tab |
+| Batch limit | 10 | 40 (documented) |
+
+`api.avax.network` is Ava Labs' own public API node. Checked 2026-09-02: it runs
+avalanchego v1.14.2, carries Multicall3 at the canonical address, and its CORS
+preflight reflects the caller's origin, so the browser can read it directly.
+Neither batch limit is ever reached — a multicall is one `eth_call`.
 
 **Measured 2026-08-25** — these numbers are encoded in the code.
 
@@ -33,9 +45,12 @@ Build time (GitHub Actions)   ← what the page says without JavaScript
   and written to src/data/snapshots/YYYY-MM-DD.json
 
 Browser (~31KB)               ← what the page says once JavaScript runs
-  one aggregate3: every balance plus getBlockNumber and
-  getCurrentBlockTimestamp. Folded through the same fold() and written over
-  the baked figures. Any failure leaves them untouched.
+  Supply tab:  one aggregate3 on Henesys — every balance plus
+               getBlockNumber and getCurrentBlockTimestamp. Folded through
+               the same fold() and written over the baked figures.
+  Address tab: the same, plus a second aggregate3 on C-Chain for the
+               NXPC balances there. The two are independent.
+  Any failure leaves the baked figures untouched.
   Then a bare eth_blockNumber every 30s for the freshness pill.
   Nothing is read while the tab is hidden.
 
@@ -241,12 +256,15 @@ is the list of **what we hold**.
 Zod validates it at build time. Duplicate ids, duplicate addresses, malformed
 addresses and a `standard` attached to an EOA all fail the build.
 
-**Balances are read on Henesys only.** `c-chain` rows stay `not read` — reading
-them needs a second RPC endpoint, and the rule for this page is one public
-Henesys RPC. The structure is there for when that changes.
+**A balance means a different call on each chain.** On Henesys, NXPC is the native
+gas token, so it is `getEthBalance`. On C-Chain it is an ERC-20, so it is
+`balanceOf` on `0x5E0E…fb59` — reading the account balance there would put AVAX in
+a column headed NXPC.
 
-Native balances and ERC-20/721 metadata go out in a **single `aggregate3`**.
-Mixed types are safe: `allowFailure` isolates each item.
+Each chain is one `aggregate3`, and the two are fired independently: one endpoint
+being unreachable costs that chain's balances and nothing else. Native balances and
+ERC-20/721 metadata ride in the same call, and `allowFailure` isolates each item, so
+a contract that does not answer `totalSupply` only loses that one field.
 
 **To switch to real data**: fill in the addresses and delete the `# placeholder`
 line at the top of the file. `balanceHint` is then ignored and balances are read

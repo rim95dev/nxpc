@@ -814,6 +814,10 @@ const foldJson = JSON.stringify(FOLD_CONFIG);
         })
         .catch((err) => {
           pill?.setAttribute('data-live-failed', String(err?.message ?? err));
+          /* The shell skipped its own head request expecting this one to supply it.
+             It did not, so hand the job back rather than leaving the badge on BUILD
+             until the next interval. */
+          document.dispatchEvent(new CustomEvent('nxpc:live-failed'));
         });
     };
     run();

@@ -9,12 +9,13 @@ on:
     # Why Thursday: the grid the backfill produced (2025-05-15 ~ 2026-08-27) is on
     # Thursdays, so it has to continue on the same weekday for the spacing to stay even.
     - cron: '0 0 * * 4'
-    # Every 3 hours — rebakes only the «current» numbers on the screen. No snapshot is recorded.
-    # The figures are baked at build time, so without this the page carries the last
-    # build's numbers until the next one. Three hours caps how stale they can get.
+    # Daily — refreshes the built-in figures. No snapshot is recorded.
+    # The browser reads balances live on load, so this is not what keeps the numbers
+    # current; it refreshes the fallback that curl and a JavaScript-less reader get.
+    # Daily is enough for that, and every extra run is another Pages deployment.
     # Minute 20, not 0: on-the-hour schedules queue behind everyone else's, and the
     # weekly snapshot run already owns 00:00.
-    - cron: '20 */3 * * *'
+    - cron: '20 3 * * *'
 
   workflow_dispatch:
     inputs:
@@ -24,9 +25,10 @@ on:
         default: true
 
 permissions:
-  contents: write   # needed to commit the snapshot archive
+  contents: write       # committing the snapshot archive
   pages: write
   id-token: write
+  deployments: write    # pruning old Pages deployments
 
 # Deploys must not overlap. Let the in-flight one finish and queue the new one.
 concurrency:
@@ -91,3 +93,25 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+
+      # Every run leaves a deployment record behind, and a daily cron makes that a
+      # list nobody can read. Only the newest few are of any use — the active one is
+      # always first, so it is never touched.
+      # A deployment has to be marked inactive before the API will delete it.
+      - name: Prune old deployments
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KEEP: '5'
+        run: |
+          ids=$(gh api --paginate \
+            "repos/$GITHUB_REPOSITORY/deployments?environment=github-pages&per_page=100" \
+            --jq '.[].id')
+          n=0
+          for id in $ids; do
+            n=$((n + 1))
+            [ "$n" -le "$KEEP" ] && continue
+            gh api -X POST "repos/$GITHUB_REPOSITORY/deployments/$id/statuses" \
+              -f state=inactive --silent || true
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/deployments/$id" --silent || true
+          done
+          echo "kept $KEEP of $n deployments"
