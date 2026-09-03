@@ -61,6 +61,12 @@ const WalletSchema = z
     static: z.number().nonnegative().optional(),
     staticSource: L10n.optional(),
     /**
+     * The balance backs a token that circulates elsewhere — wrapped NXPC on another
+     * chain, NESO, WNXPC. Counting it as a holding would count that supply twice.
+     * Only the address tab reads this; the supply figures are unaffected.
+     */
+    collateral: z.boolean().optional(),
+    /**
      * Whether it counts as circulating on the «issuer control basis». No default value.
      * The «policy basis» is decided by tier, not by this value (see POLICY_TIERS).
      */

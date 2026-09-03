@@ -88,22 +88,24 @@ export const isNonCirculating = (address: string, chain: AddressEntry['chain']) 
   chain === 'henesys' && DEDUCTED.has(address.toLowerCase());
 
 /**
- * The Henesys bridge lock, again from the supply registry.
+ * Balances that back a token circulating somewhere else, marked `collateral` in the
+ * supply registry.
  *
- * It is left out of «total held» because it would be counted twice. The lock is the
- * collateral for the NXPC that exists on C-Chain, and this tab lists the C-Chain
- * balances too — the same tokens seen from both ends. Adding the lock to the total
- * puts the address tab above circulating supply, which cannot be right.
+ * They are left out of «total held» because the thing they back is already counted.
+ * The bridge lock stands behind the NXPC on C-Chain, which this tab lists further
+ * down; NextMeso holds NXPC against the NESO it issued; wNXPC the same against
+ * WNXPC. Adding them puts the address tab above circulating supply, which cannot be
+ * right — it was reporting 303M against a circulating supply of 302M.
  *
- * The row still shows the balance. It is a real amount at a real address; it just is
- * not an amount held on top of what the other rows already account for.
+ * The rows still show their balances. They are real amounts at real addresses; they
+ * are just not amounts held on top of what the other rows already account for.
  */
-const BRIDGE_LOCK = new Set(
-  WALLETS.filter((w) => w.tier === 'bridge' && w.address).map((w) => w.address!.toLowerCase()),
+const COLLATERAL = new Set(
+  WALLETS.filter((w) => w.collateral && w.address).map((w) => w.address!.toLowerCase()),
 );
 
-export const isBridgeLock = (address: string, chain: AddressEntry['chain']) =>
-  chain === 'henesys' && BRIDGE_LOCK.has(address.toLowerCase());
+export const isCollateral = (address: string, chain: AddressEntry['chain']) =>
+  chain === 'henesys' && COLLATERAL.has(address.toLowerCase());
 
 export interface TokenInfo {
   name?: string;
@@ -124,7 +126,7 @@ export interface LocalizedAddress {
   /** True when the circulating supply policy deducts this address. */
   nonCirculating: boolean;
   /** True when the balance is already represented elsewhere and must not be added to the total. */
-  bridgeLock: boolean;
+  collateral: boolean;
   /** null means it was not read — this must be distinguished from 0. */
   balance: number | null;
   token?: TokenInfo;
@@ -143,7 +145,7 @@ export function localizeAddresses(
     ...(a.standard ? { standard: a.standard } : {}),
     ...(a.executes ? { executes: [...a.executes] } : {}),
     nonCirculating: isNonCirculating(a.address, a.chain),
-    bridgeLock: isBridgeLock(a.address, a.chain),
+    collateral: isCollateral(a.address, a.chain),
     label: a.label[lang],
     address: a.address,
     balance: balances[a.id] ?? null,

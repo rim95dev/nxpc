@@ -79,7 +79,7 @@ export const en = {
     copied: 'Copied',
     excludeNonCirc: 'Exclude non-circulating',
     notCounted: '* not in the total',
-    notCountedWhy: 'Collateral for the NXPC on C-Chain listed below — counting both would count it twice',
+    notCountedWhy: 'Collateral behind a token that circulates elsewhere — counting both would count the same supply twice',
     notRead: 'no read',
     notReadWhy: 'the RPC for this chain did not answer',
     cat: {

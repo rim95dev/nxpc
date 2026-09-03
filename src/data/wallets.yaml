@@ -27,6 +27,10 @@
 #   deducts only burn·locked·vesting, while fusion·treasury·ecosystem·ops·bridge·wrapper
 #   are included in circulating supply because the asset flow table says they «can be circulated at any time».
 # share        Used when one address is split into shares (wrapper). Defaults to 1.
+# collateral   The balance backs a token that circulates somewhere else — the wrapped
+#              NXPC on another chain, NESO, WNXPC. It is a real balance at a real
+#              address, but not one held on top of what those tokens already
+#              represent, so the address tab leaves it out of «total held».
 # static       An aggregate entry whose address is not published. Not read on-chain; the source is recorded instead.
 #
 # Sources: the supply definition document (2026-08-29)
@@ -53,7 +57,7 @@
 - id: contribution-reward-distributor
   tier: locked
   label: { en: Contribution reward pool }
-  holder: { en: ContributionRewardDistributor }
+  holder: { en: Contribution Reward Distributor }
   address: "0xeEc5d35E12E5d78CF724350978754b65AE255C33"
   strictCirculating: false
 
@@ -61,14 +65,14 @@
 - id: team-vesting
   tier: vesting
   label: { en: Team vesting }
-  holder: { en: TeamVestingWallet }
+  holder: { en: Team Vesting Wallet }
   address: "0xdA24fEf18739a118e0BE6519EC83acA71C977b34"
   strictCirculating: false
 
 - id: advisor-vesting
   tier: vesting
   label: { en: Advisor vesting }
-  holder: { en: AdvisorVestingWallet }
+  holder: { en: Advisor Vesting Wallet }
   address: "0x59A95Ef49BEF691119008Db202Bf0F8c3b4ec2f5"
   strictCirculating: false
 
@@ -78,22 +82,23 @@
 - id: cold-recycle-vault
   tier: fusion
   label: { en: Fusion reserve · cold }
-  holder: { en: ColdNXPCRecycleVault }
+  holder: { en: Cold NXPC Recycle Vault }
   address: "0x959e7008f257B278A314Ef2208e28200118dA408"
   strictCirculating: false
 
 - id: recycle-vault
   tier: fusion
   label: { en: Fusion reserve · hot }
-  holder: { en: NXPCRecycleVault }
+  holder: { en: NXPC Recycle Vault }
   address: "0xA5489F2739Bd8E447f768EDeFAb032dD8466B428"
   strictCirculating: false
 
 # ── Bridge lock (collateral for wrapped tokens on other chains) ─────────
 - id: l1-bridge-lock
   tier: bridge
+  collateral: true
   label: { en: Bridge lock }
-  holder: { en: SourceBridge }
+  holder: { en: Source Bridge }
   address: "0x59211b32AC0bFC2cdD67ee1Cb89979D2d33E74C8"
   strictCirculating: false
 
@@ -101,21 +106,21 @@
 - id: revenue-wallet
   tier: treasury
   label: { en: Revenue }
-  holder: { en: RevenueWallet }
+  holder: { en: Revenue Wallet }
   address: "0x40328F0fe525230666A04fcAC1f512f2b6F08eFa"
   strictCirculating: false
 
 - id: nuc-ipmg-wallet
   tier: vesting
   label: { en: IP management }
-  holder: { en: NUCIPMGWallet }
+  holder: { en: NUC IPMG Wallet }
   address: "0x9F98cfa105f04Ad42FA517d63bBeed4ff892554F"
   strictCirculating: false
 
 - id: creator-wallet
   tier: treasury
   label: { en: Creator wallet }
-  holder: { en: CreatorWallet }
+  holder: { en: Creator Wallet }
   address: "0x79a3a495135E3d617D74BB8D960Ef026b1810737"
   strictCirculating: false
 
@@ -129,21 +134,21 @@
 - id: warp-fee-wallet
   tier: treasury
   label: { en: Warp fee }
-  holder: { en: WarpFeeWallet }
+  holder: { en: Warp Fee Wallet }
   address: "0x009944D77720BFd667D42cd24bB3fe17323930Ab"
   strictCirculating: false
 
 - id: hot-platform-fee-wallet
   tier: treasury
   label: { en: Platform fee · hot }
-  holder: { en: HotPlatformFeeWallet }
+  holder: { en: Hot Platform Fee Wallet }
   address: "0x43fF86B251a5Bed5a3B72f03783f74C20E212435"
   strictCirculating: false
 
 - id: platform-fee-wallet
   tier: treasury
   label: { en: Platform fee }
-  holder: { en: PlatformFeeWallet }
+  holder: { en: Platform Fee Wallet }
   address: "0x9Af1ebEA502eB5743e4a45d702dc56Ddf8149731"
   strictCirculating: false
 
@@ -153,6 +158,7 @@
 # The share cannot be known from on-chain balances alone, so the surveyed figure from the supply definition document is used.
 - id: nextmeso-company
   tier: wrapper
+  collateral: true
   label: { en: NextMeso collateral · company }
   holder: { en: NextMeso }
   address: "0x07E49Ad54FcD23F6e7B911C2068F0148d1827c08"
@@ -162,6 +168,7 @@
 
 - id: nextmeso-user
   tier: circulating
+  collateral: true
   label: { en: NextMeso collateral · users }
   holder: { en: NextMeso }
   address: "0x07E49Ad54FcD23F6e7B911C2068F0148d1827c08"
@@ -173,6 +180,7 @@
 # control and its largest holder is a DEX liquidity pool, so all of it is circulating.
 - id: wnxpc
   tier: circulating
+  collateral: true
   label: { en: wNXPC collateral }
   holder: { en: wNXPC (Algebra) }
   address: "0x150869eac5C58d3655f860C4316107fB626244d0"
@@ -182,28 +190,28 @@
 - id: ecosystem-builder
   tier: ecosystem
   label: { en: Builder program }
-  holder: { en: EcosystemBuilderProgram }
+  holder: { en: Ecosystem Builder Program }
   address: "0x5a959a0F0897e3922B75DD4b7c81F9FA829d1528"
   strictCirculating: false
 
 - id: nxpc-distributor
   tier: ecosystem
   label: { en: Distributor }
-  holder: { en: NXPCDistributor }
+  holder: { en: NXPC Distributor }
   address: "0x8ea5DE940fDFFd29f953746d596b8B55aFa03E54"
   strictCirculating: false
 
 - id: nxpc-claim
   tier: ecosystem
   label: { en: Unclaimed }
-  holder: { en: NXPCClaim }
+  holder: { en: NXPC Claim }
   address: "0xa8baad3115A133B101EF935Cb2e198FD04F1C659"
   strictCirculating: false
 
 - id: vrf-coordinator
   tier: ecosystem
   label: { en: VRF coordinator }
-  holder: { en: VRFCoordinator }
+  holder: { en: VRF Coordinator }
   address: "0x51fEDe228AcA66ABE237AABF891EA355A7E09140"
   strictCirculating: false
 
@@ -211,7 +219,7 @@
 - id: gas-sponsor-wallet
   tier: ops
   label: { en: Gas sponsor }
-  holder: { en: GasSponsorWallet }
+  holder: { en: Gas Sponsor Wallet }
   address: "0x2DB1C7440E885A171840F64D63e51f59Ff26eac5"
   strictCirculating: false
 
@@ -234,21 +242,21 @@
 - id: contribution-reward-wallet
   tier: locked
   label: { en: Rewards pool · legacy }
-  holder: { en: ContributionRewardWallet }
+  holder: { en: Contribution Reward Wallet }
   address: "0x164ce897e8f6862bcf3914Ad7aA2472B9154128A"
   strictCirculating: false
 
 - id: contribution-reward-dist-wallet
   tier: locked
   label: { en: Rewards distribution }
-  holder: { en: ContributionRewardDistributionWallet }
+  holder: { en: Contribution Reward Distribution Wallet }
   address: "0xfF8e0E1b645AcD15a93Bdd77AE7Dc203Dc345531"
   strictCirculating: false
 
 - id: contribution-reward-dist-wallet-old
   tier: locked
   label: { en: Rewards distribution · deprecated }
-  holder: { en: ContributionRewardDistributionWallet }
+  holder: { en: Contribution Reward Distribution Wallet }
   address: "0x418353dad305D1796334623c308E1b2D5BB2A250"
   strictCirculating: false
 
@@ -262,14 +270,14 @@
 - id: exchange-offering
   tier: ecosystem
   label: { en: Exchange offering }
-  holder: { en: EcosystemExchangeOfferingWallet }
+  holder: { en: Ecosystem Exchange Offering Wallet }
   address: "0xACfd5169Ba50a5Fb7b561efA0286A65dE7DFB671"
   strictCirculating: false
 
 - id: community-airdrop
   tier: ecosystem
   label: { en: Community airdrop }
-  holder: { en: CommunityAirdropWallet }
+  holder: { en: Community Airdrop Wallet }
   address: "0x9525B6da53de6BdDae70F2C56Bbd47CA91406b6b"
   strictCirculating: false
 
@@ -278,6 +286,6 @@
 - id: liquidity-provision
   tier: circulating
   label: { en: Liquidity provision }
-  holder: { en: LiquidityProvisionWallet }
+  holder: { en: Liquidity Provision Wallet }
   address: "0xD1Ef1787497789d71FaaA85947035ED64F3b8Ad6"
   strictCirculating: true

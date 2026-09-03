@@ -72,7 +72,7 @@ const CAT_LABEL: Record<string, string> = t.addr.cat;
    the C-Chain balances listed further down, so adding both counts it twice. */
 const readRows = rows.filter((r) => r.balance !== null);
 const unread = rows.length - readRows.length;
-const counted = (r: (typeof rows)[number]) => !r.bridgeLock;
+const counted = (r: (typeof rows)[number]) => !r.collateral;
 const held = readRows.filter(counted).reduce((n, r) => n + (r.balance ?? 0), 0);
 const contracts = rows.filter((r) => r.type === 'contract').length;
 const eoas = rows.length - contracts;
@@ -203,7 +203,7 @@ const tiles = [
                 data-name={r.label.toLowerCase()}
                 data-cat={r.category}
                 data-noncirc={r.nonCirculating ? '1' : undefined}
-                data-uncounted={r.bridgeLock ? '1' : undefined}
+                data-uncounted={r.collateral ? '1' : undefined}
               >
                 <td data-cell="title" data-label={t.addr.colLabel}>
                   <span class="wg" style={`background:${CAT_COLOR[r.category]}`}></span>{r.label}
@@ -241,7 +241,7 @@ const tiles = [
                       ? <span class="ph" title={t.addr.notReadWhy}>{t.addr.notRead}</span>
                       : F.full(r.balance)}
                   </span>
-                  {r.bridgeLock && (
+                  {r.collateral && (
                     <span class="not-counted" title={t.addr.notCountedWhy}>{t.addr.notCounted}</span>
                   )}
                 </td>

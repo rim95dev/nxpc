@@ -33,35 +33,35 @@
   type: contract
   category: bridge
   chain: henesys
-  label: { en: L1DestinationBridge }
+  label: { en: L1 Destination Bridge }
   address: "0xA8383D51E1962C3f32F9Af27b7612Df8D8857522"
 
 - id: l1-teller
   type: contract
   category: bridge
   chain: henesys
-  label: { en: L1Teller }
+  label: { en: L1 Teller }
   address: "0xEbdeB5BdeDd722DD663CD46b30A10361b8d0Aad3"
 
 - id: nxpc-claim
   type: contract
   category: bridge
   chain: henesys
-  label: { en: NXPCClaim }
+  label: { en: NXPC Claim }
   address: "0xa8baad3115A133B101EF935Cb2e198FD04F1C659"
 
 - id: source-bridge
   type: contract
   category: bridge
   chain: henesys
-  label: { en: SourceBridge }
+  label: { en: Source Bridge }
   address: "0x59211b32AC0bFC2cdD67ee1Cb89979D2d33E74C8"
 
 - id: teleporter-messenger
   type: contract
   category: bridge
   chain: henesys
-  label: { en: TeleporterMessenger }
+  label: { en: Teleporter Messenger }
   address: "0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf"
 
 - id: teller
@@ -75,28 +75,28 @@
   type: contract
   category: bridge
   chain: c-chain
-  label: { en: C-Chain DestinationBridge }
+  label: { en: C-Chain Destination Bridge }
   address: "0xa8baad3115A133B101EF935Cb2e198FD04F1C659"
 
 - id: c-l1-source-bridge
   type: contract
   category: bridge
   chain: c-chain
-  label: { en: C-Chain L1SourceBridge }
+  label: { en: C-Chain L1 Source Bridge }
   address: "0xC9640c6A97B661ab444E6d646f0aC8F8bE899EBB"
 
 - id: c-nxpc-claim
   type: contract
   category: bridge
   chain: c-chain
-  label: { en: C-Chain NXPCClaim }
+  label: { en: C-Chain NXPC Claim }
   address: "0xc6F301956f65805521d074228b18E4F5Bb419d7D"
 
 - id: c-teleporter-messenger
   type: contract
   category: bridge
   chain: c-chain
-  label: { en: C-Chain TeleporterMessenger }
+  label: { en: C-Chain Teleporter Messenger }
   address: "0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf"
 
 # ── vault · contracts ─────────────────────────────────────────────
@@ -105,49 +105,49 @@
   type: contract
   category: vault
   chain: henesys
-  label: { en: ColdNXPCRecycleVault }
+  label: { en: Cold NXPC Recycle Vault }
   address: "0x959e7008f257B278A314Ef2208e28200118dA408"
 
 - id: commission-vault
   type: contract
   category: vault
   chain: henesys
-  label: { en: CommissionVault }
+  label: { en: Commission Vault }
   address: "0x86B62249227ecCae39dfb2f001cB75b6258282B9"
 
 - id: dex-community-vault
   type: contract
   category: vault
   chain: henesys
-  label: { en: DexCommunityVault }
+  label: { en: Dex Community Vault }
   address: "0x59a662Ed724F19AD019307126CbEBdcF4b57d6B1"
 
 - id: dex-poolw-nxpcusdt
   type: contract
   category: vault
   chain: henesys
-  label: { en: DexPoolwNXPCUSDT }
+  label: { en: Dex Pool wNXPC USDT }
   address: "0x2b3d28523a4e3852ab436d6b545cac5785f7d90b"
 
 - id: nft-vault
   type: contract
   category: vault
   chain: henesys
-  label: { en: NFTVault }
+  label: { en: NFT Vault }
   address: "0x6E8605cE3b2C530A7eb3632cFf1E1886e0F55ee7"
 
 - id: nxpc-recycle-vault
   type: contract
   category: vault
   chain: henesys
-  label: { en: NXPCRecycleVault }
+  label: { en: NXPC Recycle Vault }
   address: "0xA5489F2739Bd8E447f768EDeFAb032dD8466B428"
 
 - id: trash-can
   type: contract
   category: vault
   chain: henesys
-  label: { en: TrashCan }
+  label: { en: Trash Can }
   address: "0xf0AF2cFBB53F3a017964146663bc9c571798f615"
 
 # ── treasury · contracts ──────────────────────────────────────────
@@ -156,7 +156,7 @@
   type: contract
   category: treasury
   chain: henesys
-  label: { en: AdvisorVestingWallet }
+  label: { en: Advisor Vesting Wallet }
   address: "0x59A95Ef49BEF691119008Db202Bf0F8c3b4ec2f5"
 
 - id: commission
@@ -170,84 +170,84 @@
   type: contract
   category: treasury
   chain: henesys
-  label: { en: CommunityAirdropWallet }
+  label: { en: Community Airdrop Wallet }
   address: "0x9525B6da53de6BdDae70F2C56Bbd47CA91406b6b"
 
 - id: contribution-reward-distribution-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: ContributionRewardDistributionWallet }
+  label: { en: Contribution Reward Distribution Wallet }
   address: "0xfF8e0E1b645AcD15a93Bdd77AE7Dc203Dc345531"
 
 - id: contribution-reward-distributor
   type: contract
   category: treasury
   chain: henesys
-  label: { en: ContributionRewardDistributor }
+  label: { en: Contribution Reward Distributor }
   address: "0xeEc5d35E12E5d78CF724350978754b65AE255C33"
 
 - id: contribution-reward-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: ContributionRewardWallet }
+  label: { en: Contribution Reward Wallet }
   address: "0x164ce897e8f6862bcf3914Ad7aA2472B9154128A"
 
 - id: creator-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: CreatorWallet }
+  label: { en: Creator Wallet }
   address: "0x79a3a495135E3d617D74BB8D960Ef026b1810737"
 
 - id: d-app-reward-allocation-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: DAppRewardAllocationWallet }
+  label: { en: DApp Reward Allocation Wallet }
   address: "0x18DCF168258Bd4794D99992581DD74677d4ff5bF"
 
 - id: dltipmg-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: DLTIPMGWallet }
+  label: { en: DLT IPMG Wallet }
   address: "0x8E7533FC6E28a93bC769810fD65ed5FB37Ed7e5e"
 
 - id: ecosystem-builder-program
   type: contract
   category: treasury
   chain: henesys
-  label: { en: EcosystemBuilderProgram }
+  label: { en: Ecosystem Builder Program }
   address: "0x5a959a0F0897e3922B75DD4b7c81F9FA829d1528"
 
 - id: ecosystem-exchange-offering-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: EcosystemExchangeOfferingWallet }
+  label: { en: Ecosystem Exchange Offering Wallet }
   address: "0xACfd5169Ba50a5Fb7b561efA0286A65dE7DFB671"
 
 - id: ecosystem-reserve-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: EcosystemReserveWallet }
+  label: { en: Ecosystem Reserve Wallet }
   address: "0x87Bba4Aed73216260D15eDa24f6fe83650d0B1e3"
 
 - id: hot-platform-fee-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: HotPlatformFeeWallet }
+  label: { en: Hot Platform Fee Wallet }
   address: "0x43fF86B251a5Bed5a3B72f03783f74C20E212435"
 
 - id: hot-revenue-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: HotRevenueWallet }
+  label: { en: Hot Revenue Wallet }
   address: "0x68C322DDba93B8cD7d65B30E34D4f1B705224e58"
 
 - id: ipmg
@@ -261,56 +261,56 @@
   type: contract
   category: treasury
   chain: henesys
-  label: { en: LiquidAllocationWallet }
+  label: { en: Liquid Allocation Wallet }
   address: "0x60054642ca6f4df92d8eA9C67c400638944367D7"
 
 - id: liquidity-provision-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: LiquidityProvisionWallet }
+  label: { en: Liquidity Provision Wallet }
   address: "0xD1Ef1787497789d71FaaA85947035ED64F3b8Ad6"
 
 - id: msu-contents-commission
   type: contract
   category: treasury
   chain: henesys
-  label: { en: MSUContentsCommission }
+  label: { en: MSU Contents Commission }
   address: "0x9F3bD14E5873DD779191F82700BCE9FC61aF7646"
 
 - id: nucipmg-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: NUCIPMGWallet }
+  label: { en: NUC IPMG Wallet }
   address: "0x9F98cfa105f04Ad42FA517d63bBeed4ff892554F"
 
 - id: penalty-reserve-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: PenaltyReserveWallet }
+  label: { en: Penalty Reserve Wallet }
   address: "0x3c14868840Ad459bA569110B4F67b480a74F8B23"
 
 - id: platform-fee-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: PlatformFeeWallet }
+  label: { en: Platform Fee Wallet }
   address: "0x9Af1ebEA502eB5743e4a45d702dc56Ddf8149731"
 
 - id: revenue-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: RevenueWallet }
+  label: { en: Revenue Wallet }
   address: "0x40328F0fe525230666A04fcAC1f512f2b6F08eFa"
 
 - id: team-vesting-wallet
   type: contract
   category: treasury
   chain: henesys
-  label: { en: TeamVestingWallet }
+  label: { en: Team Vesting Wallet }
   address: "0xdA24fEf18739a118e0BE6519EC83acA71C977b34"
 
 - id: treasury
@@ -324,35 +324,35 @@
   type: contract
   category: treasury
   chain: henesys
-  label: { en: WarpFeeWallet }
+  label: { en: Warp Fee Wallet }
   address: "0x009944D77720BFd667D42cd24bB3fe17323930Ab"
 
 - id: c-ecosystem-builder-program
   type: contract
   category: treasury
   chain: c-chain
-  label: { en: C-Chain EcosystemBuilderProgram }
+  label: { en: C-Chain Ecosystem Builder Program }
   address: "0x87Bba4Aed73216260D15eDa24f6fe83650d0B1e3"
 
 - id: c-hot-nuc-team-vesting
   type: contract
   category: treasury
   chain: c-chain
-  label: { en: C-Chain HotNUCTeamVesting }
+  label: { en: C-Chain Hot NUC Team Vesting }
   address: "0x0816025575a389A739C0E645E5ab15017De969EF"
 
 - id: c-hot-nxp-team-vesting
   type: contract
   category: treasury
   chain: c-chain
-  label: { en: C-Chain HotNXPTeamVesting }
+  label: { en: C-Chain Hot NXP Team Vesting }
   address: "0xB120ac6b2e8D87d92Da065f7f3517adDf0b8483E"
 
 - id: c-hot-payment-settlement-wallet
   type: contract
   category: treasury
   chain: c-chain
-  label: { en: C-Chain HotPaymentSettlementWallet }
+  label: { en: C-Chain Hot Payment Settlement Wallet }
   address: "0xFe52e297ee7aA0EC6Bf61a4823d98F48Ce943487"
 
 - id: c-treasury
@@ -375,7 +375,7 @@
   type: contract
   category: token
   chain: henesys
-  label: { en: MapleStoryAsset }
+  label: { en: MapleStory Asset }
   address: "0xe96d4b00256239A645FC6c734C2c22d3a9b88569"
   standard: erc721
 
@@ -383,7 +383,7 @@
   type: contract
   category: token
   chain: henesys
-  label: { en: MapleStoryCharacter }
+  label: { en: MapleStory Character }
   address: "0xcE8e48Fae05c093a4A1a1F569BDB53313D765937"
   standard: erc721
 
@@ -391,14 +391,14 @@
   type: contract
   category: token
   chain: henesys
-  label: { en: MapleStoryConsume }
+  label: { en: MapleStory Consume }
   address: "0x3413d3B37a05E3c20c8FB93f54d55539966A9997"
 
 - id: maplestory-equip
   type: contract
   category: token
   chain: henesys
-  label: { en: MapleStoryEquip }
+  label: { en: MapleStory Equip }
   address: "0x43DCff2A0cedcd5e10e6f1c18b503498dDCe60d5"
   standard: erc721
 
@@ -406,7 +406,7 @@
   type: contract
   category: token
   chain: henesys
-  label: { en: MapleStoryEquipSBT }
+  label: { en: MapleStory Equip SBT }
   address: "0xd0BCfd3821CAcd73171d34800669554373496CBf"
   standard: erc721
 
@@ -438,7 +438,7 @@
   type: contract
   category: token
   chain: c-chain
-  label: { en: C-Chain NicknameNFT }
+  label: { en: C-Chain Nickname NFT }
   address: "0x7eE999EF7A741479b5b8D49fd12d100c064696A0"
   standard: erc721
 
@@ -464,35 +464,35 @@
   type: contract
   category: infra
   chain: henesys
-  label: { en: CreatorFactory }
+  label: { en: Creator Factory }
   address: "0x1eec9e982170faDE7fdef29cd6595942e8D24f8F"
 
 - id: dex-pool-position-manager
   type: contract
   category: infra
   chain: henesys
-  label: { en: DexPoolPositionManager }
+  label: { en: Dex Pool Position Manager }
   address: "0x658E287E9C820484f5808f687dC4863B552de37D"
 
 - id: event-store
   type: contract
   category: infra
   chain: henesys
-  label: { en: EventStore }
+  label: { en: Event Store }
   address: "0xd01507db347213680c4F741854B88c71b337fE74"
 
 - id: exchange-shop
   type: contract
   category: infra
   chain: henesys
-  label: { en: ExchangeShop }
+  label: { en: Exchange Shop }
   address: "0x561FBafE2164dC8D9c706D711655590c3232f13F"
 
 - id: item-issuance
   type: contract
   category: infra
   chain: henesys
-  label: { en: ItemIssuance }
+  label: { en: Item Issuance }
   address: "0x24F094Fd8951eF776f0234d137FAB4Fe890B0EaE"
 
 - id: marketplace-v2
@@ -513,14 +513,14 @@
   type: contract
   category: infra
   chain: henesys
-  label: { en: NXPCAmountManager }
+  label: { en: NXPC Amount Manager }
   address: "0x3B25937A9E7EEe347bCbf02Ecfe73416c2ce192a"
 
 - id: order-book
   type: contract
   category: infra
   chain: henesys
-  label: { en: OrderBook }
+  label: { en: Order Book }
   address: "0xDF6D3658335A6608c8C76470B53250add03bcc77"
 
 - id: raffle
@@ -534,21 +534,21 @@
   type: contract
   category: infra
   chain: henesys
-  label: { en: RandomSeedGenerator }
+  label: { en: Random Seed Generator }
   address: "0x9ffe6B5af651716154B2F78abe5586e7f3D7a26A"
 
 - id: vrf-coordinator
   type: contract
   category: infra
   chain: henesys
-  label: { en: VRFCoordinator }
+  label: { en: VRF Coordinator }
   address: "0x51fEDe228AcA66ABE237AABF891EA355A7E09140"
 
 - id: vrf-manager
   type: contract
   category: infra
   chain: henesys
-  label: { en: VRFManager }
+  label: { en: VRF Manager }
   address: "0xEe5f1056eb57f2B0d2584ADCe40A69F8Ad728F54"
 
 # ── ops · contracts ───────────────────────────────────────────────
@@ -557,84 +557,84 @@
   type: contract
   category: ops
   chain: henesys
-  label: { en: ApproveController }
+  label: { en: Approve Controller }
   address: "0xc6F301956f65805521d074228b18E4F5Bb419d7D"
 
 - id: contract-owner-multisig
   type: contract
   category: ops
   chain: henesys
-  label: { en: ContractOwnerMultisig }
+  label: { en: Contract Owner Multisig }
   address: "0x3D9C330Ae8764cb674378F50B51bB1fadF3f29B3"
 
 - id: gas-sponsor-wallet
   type: contract
   category: ops
   chain: henesys
-  label: { en: GasSponsorWallet }
+  label: { en: Gas Sponsor Wallet }
   address: "0x2DB1C7440E885A171840F64D63e51f59Ff26eac5"
 
 - id: hot-contract-owner-multisig
   type: contract
   category: ops
   chain: henesys
-  label: { en: HotContractOwnerMultisig }
+  label: { en: Hot Contract Owner Multisig }
   address: "0x47884c99310F6edeDBFc2a58ff3Aa33cfE70255b"
 
 - id: multicall-wallet
   type: contract
   category: ops
   chain: henesys
-  label: { en: MulticallWallet }
+  label: { en: Multicall Wallet }
   address: "0xA98A65a1c9b993EA330e1914aa20DCb18635B6b4"
 
 - id: next-forwarder
   type: contract
   category: ops
   chain: henesys
-  label: { en: NextForwarder }
+  label: { en: Next Forwarder }
   address: "0x08C2CB00d04B28348a62D83A764021975ea76659"
 
 - id: nxpc-distributor
   type: contract
   category: ops
   chain: henesys
-  label: { en: NXPCDistributor }
+  label: { en: NXPC Distributor }
   address: "0x8ea5DE940fDFFd29f953746d596b8B55aFa03E54"
 
 - id: c-airdrop-multicall-wallet
   type: contract
   category: ops
   chain: c-chain
-  label: { en: C-Chain AirdropMulticallWallet }
+  label: { en: C-Chain Airdrop Multicall Wallet }
   address: "0x07E49Ad54FcD23F6e7B911C2068F0148d1827c08"
 
 - id: c-contract-owner-multisig
   type: contract
   category: ops
   chain: c-chain
-  label: { en: C-Chain ContractOwnerMultisig }
+  label: { en: C-Chain Contract Owner Multisig }
   address: "0x9525B6da53de6BdDae70F2C56Bbd47CA91406b6b"
 
 - id: c-multicall-wallet
   type: contract
   category: ops
   chain: c-chain
-  label: { en: C-Chain MulticallWallet }
+  label: { en: C-Chain Multicall Wallet }
   address: "0xA98A65a1c9b993EA330e1914aa20DCb18635B6b4"
 
 - id: c-multisig-non-retrievable
   type: contract
   category: ops
   chain: c-chain
-  label: { en: C-Chain MultisigNonRetrievable }
+  label: { en: C-Chain Multisig Non Retrievable }
   address: "0x2D2A0b8D592F5B5130cd182ACc2C441a9309488C"
 
 - id: c-next-forwarder
   type: contract
   category: ops
   chain: c-chain
-  label: { en: C-Chain NextForwarder }
+  label: { en: C-Chain Next Forwarder }
   address: "0x08C2CB00d04B28348a62D83A764021975ea76659"
 
 # ── ops · eoas ────────────────────────────────────────────────────
@@ -643,124 +643,124 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: ApproveControllerExecutorBackoffice1 }
+  label: { en: Approve Controller Executor Backoffice Executor }
   address: "0xa2f5a6FBbc541EfA32B1AEfad3761C0D6ae8391F"
   executes:
-    - ApproveController
+    - Approve Controller
 
 - id: approve-controller-executor-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: ApproveControllerExecutorBackoffice2 }
+  label: { en: Approve Controller Executor Backoffice Executor }
   address: "0x3AFBC07daba1D5B933a3dA554e7076ADdc649BCA"
   executes:
-    - ApproveController
+    - Approve Controller
 
 - id: bridge-executor1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: BridgeExecutor1 }
+  label: { en: Bridge Executor Executor }
   address: "0xc733079E562bB9f7F2547287A3E015B3C48503d3"
   executes:
-    - SourceBridge
+    - Source Bridge
 
 - id: bridge-executor2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: BridgeExecutor2 }
+  label: { en: Bridge Executor Executor }
   address: "0xf34636EaD54F94bd7eb5183aDe1A0D79560Dde79"
   executes:
-    - SourceBridge
+    - Source Bridge
 
 - id: bridge-executor-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: BridgeExecutorBackoffice1 }
+  label: { en: Bridge Executor Backoffice Executor }
   address: "0x692904754cdd63c0DC5FCe48bA24862BdFe80dC5"
   executes:
-    - SourceBridge
+    - Source Bridge
 
 - id: bridge-executor-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: BridgeExecutorBackoffice2 }
+  label: { en: Bridge Executor Backoffice Executor }
   address: "0xdD75b3Ac3512a9060F60EC2cB835498d4CBC33ad"
   executes:
-    - SourceBridge
+    - Source Bridge
 
 - id: character1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Character1 }
+  label: { en: Character Executor }
   address: "0xDd1a0D295Fdd22110CE9E2cCA57C9b7597669c07"
   executes:
-    - MapleStoryCharacter
+    - MapleStory Character
 
 - id: character2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Character2 }
+  label: { en: Character Executor }
   address: "0x38D8cf9649f39B679D9ca1A16436d025589Df290"
   executes:
-    - MapleStoryCharacter
+    - MapleStory Character
 
 - id: character3
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Character3 }
+  label: { en: Character Executor }
   address: "0x9dd5bC1b9f77da4a94B42e75C952826DE3F2b135"
   executes:
-    - MapleStoryCharacter
+    - MapleStory Character
 
 - id: character4
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Character4 }
+  label: { en: Character Executor }
   address: "0xeE84d12223f110850E65dbe905918Fc9EBbdbdE3"
   executes:
-    - MapleStoryCharacter
+    - MapleStory Character
 
 - id: character5
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Character5 }
+  label: { en: Character Executor }
   address: "0xd1ac3e418BB2Fbc8272e1298e120E6B3F17150a6"
   executes:
-    - MapleStoryCharacter
+    - MapleStory Character
 
 - id: character-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: CharacterBackoffice1 }
+  label: { en: Character Backoffice Executor }
   address: "0x7B052549c0f69F524730F9AD4AEb964f4C2E6De6"
   executes:
-    - MapleStoryCharacter
+    - MapleStory Character
 
 - id: character-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: CharacterBackoffice2 }
+  label: { en: Character Backoffice Executor }
   address: "0x4BB32aac4602674Aa09bF8ED8B5dfF3cB07edeFd"
   executes:
-    - MapleStoryCharacter
+    - MapleStory Character
 
 - id: collection1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Collection1 }
+  label: { en: Collection Executor }
   address: "0x57f5f6a63611C77226c2680998742B0Cfc57Ec0a"
   executes:
     - Collection
@@ -769,7 +769,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Collection2 }
+  label: { en: Collection Executor }
   address: "0x04a81f390D6f645683C39C59Ec6D705Fe7313c8D"
   executes:
     - Collection
@@ -778,7 +778,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Collection3 }
+  label: { en: Collection Executor }
   address: "0x618Fdd7339d8348C7AF99D0F90470703f888cF5a"
   executes:
     - Collection
@@ -787,7 +787,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Collection4 }
+  label: { en: Collection Executor }
   address: "0xdF0f5B770F86baE3be05539033E549fAdBe72710"
   executes:
     - Collection
@@ -796,7 +796,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Collection5 }
+  label: { en: Collection Executor }
   address: "0x1AdC624F691893340300439D6E888d383864c814"
   executes:
     - Collection
@@ -805,7 +805,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: CollectionBackoffice1 }
+  label: { en: Collection Backoffice Executor }
   address: "0xFAEa644531D67690b0AFd7208B6039BE1Feab5A9"
   executes:
     - Collection
@@ -814,7 +814,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: CollectionBackoffice2 }
+  label: { en: Collection Backoffice Executor }
   address: "0xcB6f5CdF65dD44FB9DFc630B0d151343ad3ce8eb"
   executes:
     - Collection
@@ -823,7 +823,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Commission1 }
+  label: { en: Commission Executor }
   address: "0xe6AB231c72C15581fB34992d198b2B804f2A1e46"
   executes:
     - Commission
@@ -832,7 +832,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Commission2 }
+  label: { en: Commission Executor }
   address: "0xc469e0d411707447C43683De97658206653EF70C"
   executes:
     - Commission
@@ -841,7 +841,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: CommissionBackoffice1 }
+  label: { en: Commission Backoffice Executor }
   address: "0xeD5C8831125C4B23C5a4cdcf0876e4d7b6e682A3"
   executes:
     - Commission
@@ -850,7 +850,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: CommissionBackoffice2 }
+  label: { en: Commission Backoffice Executor }
   address: "0xf9B442AD1626b6B323eDE1fBEeaF480c130b5908"
   executes:
     - Commission
@@ -859,70 +859,70 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Consume1 }
+  label: { en: Consume Executor }
   address: "0x91DF31B63D78F9894a377B5Fd0ac8Cc533d7A1BE"
   executes:
-    - MapleStoryConsume
+    - MapleStory Consume
 
 - id: consume2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Consume2 }
+  label: { en: Consume Executor }
   address: "0xeFb0F17521bb858FA732Fd794253Df793Ef34C9E"
   executes:
-    - MapleStoryConsume
+    - MapleStory Consume
 
 - id: consume3
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Consume3 }
+  label: { en: Consume Executor }
   address: "0x5FD5b828c07D390Da6F2a38ED9EAE9503Cf4A072"
   executes:
-    - MapleStoryConsume
+    - MapleStory Consume
 
 - id: consume4
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Consume4 }
+  label: { en: Consume Executor }
   address: "0x5CdB35D139198934835d69f23eA9C98935fA852B"
   executes:
-    - MapleStoryConsume
+    - MapleStory Consume
 
 - id: consume5
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Consume5 }
+  label: { en: Consume Executor }
   address: "0xe2cFeBCe4e30AB91f9A49997C0663f9B29De9465"
   executes:
-    - MapleStoryConsume
+    - MapleStory Consume
 
 - id: consume-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: ConsumeBackoffice1 }
+  label: { en: Consume Backoffice Executor }
   address: "0x65AF75Fc4CB3965dCD51e838d69137431B288cd4"
   executes:
-    - MapleStoryConsume
+    - MapleStory Consume
 
 - id: consume-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: ConsumeBackoffice2 }
+  label: { en: Consume Backoffice Executor }
   address: "0xC40907d0dd6c89DFaB6a959ebb88b2aAA1f0EC64"
   executes:
-    - MapleStoryConsume
+    - MapleStory Consume
 
 - id: contract-deploy-manager1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: ContractDeployManager1 }
+  label: { en: Contract Deploy Manager Executor }
   address: "0x9FF7Fe8d173d94681107F402723150153865E2b4"
   executes:
     - Raffle
@@ -931,7 +931,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: ContractDeployManager2 }
+  label: { en: Contract Deploy Manager Executor }
   address: "0x6fa72554aF6a400B27F8a4D160180eAD151Fa101"
   executes:
     - Raffle
@@ -940,340 +940,340 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: ContributionRewardDistributor1 }
+  label: { en: Contribution Reward Distributor Executor }
   address: "0xE991A5e181FFe52d3614153f700b5B8eB4c7aB94"
   executes:
-    - ContributionRewardDistributor
+    - Contribution Reward Distributor
 
 - id: contribution-reward-distributor2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: ContributionRewardDistributor2 }
+  label: { en: Contribution Reward Distributor Executor }
   address: "0x7A92602Cb17f0D57125Eb540Cb1390B87751bb30"
   executes:
-    - ContributionRewardDistributor
+    - Contribution Reward Distributor
 
 - id: contribution-reward-distributor-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: ContributionRewardDistributorBackoffice1 }
+  label: { en: Contribution Reward Distributor Backoffice Executor }
   address: "0x72344d7e7533A5FA0F8051CbC10417885486e25e"
   executes:
-    - ContributionRewardDistributor
+    - Contribution Reward Distributor
 
 - id: creator-factory1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: CreatorFactory1 }
+  label: { en: Creator Factory Executor }
   address: "0x8C53D596e03985309c801Eb6BC5886b8b509F89E"
   executes:
-    - CreatorFactory
+    - Creator Factory
 
 - id: creator-factory2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: CreatorFactory2 }
+  label: { en: Creator Factory Executor }
   address: "0x167cEd1AE2C50976398C6793104dAC58cF694919"
   executes:
-    - CreatorFactory
+    - Creator Factory
 
 - id: creator-factory-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: CreatorFactoryBackoffice1 }
+  label: { en: Creator Factory Backoffice Executor }
   address: "0xfB95df976b6B1041950033789DFCce4a41F3b556"
   executes:
-    - CreatorFactory
+    - Creator Factory
 
 - id: creator-factory-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: CreatorFactoryBackoffice2 }
+  label: { en: Creator Factory Backoffice Executor }
   address: "0xfC2f59520a3B78162517d514790b5cE1226A8EE3"
   executes:
-    - CreatorFactory
+    - Creator Factory
 
 - id: d-app-reward1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: DAppReward1 }
+  label: { en: DApp Reward Executor }
   address: "0x383a6A1Fb4A9975d2ec43179dB94b00A68591A41"
   executes:
-    - DAppRewardAllocationWallet
+    - DApp Reward Allocation Wallet
 
 - id: d-app-reward2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: DAppReward2 }
+  label: { en: DApp Reward Executor }
   address: "0xfe906f6A1E2f30DC7C1834d09E193E0BB0B56526"
   executes:
-    - DAppRewardAllocationWallet
+    - DApp Reward Allocation Wallet
 
 - id: d-app-reward-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: DAppRewardBackoffice1 }
+  label: { en: DApp Reward Backoffice Executor }
   address: "0xE13b8738BD5eCB4264514c0d7C0A9AdbB0e56550"
   executes:
-    - DAppRewardAllocationWallet
+    - DApp Reward Allocation Wallet
 
 - id: d-app-reward-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: DAppRewardBackoffice2 }
+  label: { en: DApp Reward Backoffice Executor }
   address: "0x28f0796C778354B7CD8330704E3C21344eD7f2c4"
   executes:
-    - DAppRewardAllocationWallet
+    - DApp Reward Allocation Wallet
 
 - id: equip1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Equip1 }
+  label: { en: Equip Executor }
   address: "0xcF0791D667aa2354C8a74DCE79F3f31310d3E31C"
   executes:
-    - MapleStoryEquip
+    - MapleStory Equip
 
 - id: equip2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Equip2 }
+  label: { en: Equip Executor }
   address: "0x940e08DeFA39BA2810f87F55D3962f5dA370F90a"
   executes:
-    - MapleStoryEquip
+    - MapleStory Equip
 
 - id: equip3
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Equip3 }
+  label: { en: Equip Executor }
   address: "0xd6286e40e1A28fA44f08199BA9785B8F0028c636"
   executes:
-    - MapleStoryEquip
+    - MapleStory Equip
 
 - id: equip4
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Equip4 }
+  label: { en: Equip Executor }
   address: "0x47a99fbec51FD4fbF8C4fc260998245903f0CDEb"
   executes:
-    - MapleStoryEquip
+    - MapleStory Equip
 
 - id: equip5
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Equip5 }
+  label: { en: Equip Executor }
   address: "0x27471Ef40692322f4e4Cb107Af41609c59b145e4"
   executes:
-    - MapleStoryEquip
+    - MapleStory Equip
 
 - id: equip-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: EquipBackoffice1 }
+  label: { en: Equip Backoffice Executor }
   address: "0x00fBAc64A3b99D2fb13eB0d8997A78BB567df7b1"
   executes:
-    - MapleStoryEquip
+    - MapleStory Equip
 
 - id: equip-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: EquipBackoffice2 }
+  label: { en: Equip Backoffice Executor }
   address: "0x867B1c0b91C59b15467de6840F3dc60cF36EBF30"
   executes:
-    - MapleStoryEquip
+    - MapleStory Equip
 
 - id: equip-sbt1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: EquipSBT1 }
+  label: { en: Equip SBT Executor }
   address: "0xD7dfB50F42471F3ad6B5AA3b858028aC9543bAB3"
   executes:
-    - MapleStoryEquipSBT
+    - MapleStory Equip SBT
 
 - id: equip-sbt2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: EquipSBT2 }
+  label: { en: Equip SBT Executor }
   address: "0xb81356BcD799bd6eE827Ca69E3b22CbeD9a8d4F4"
   executes:
-    - MapleStoryEquipSBT
+    - MapleStory Equip SBT
 
 - id: equip-sbt-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: EquipSBTBackoffice1 }
+  label: { en: Equip SBT Backoffice Executor }
   address: "0x1289b82dBe816C95452667AAB2DaD7704Bd82d77"
   executes:
-    - MapleStoryEquipSBT
+    - MapleStory Equip SBT
 
 - id: equip-sbt-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: EquipSBTBackoffice2 }
+  label: { en: Equip SBT Backoffice Executor }
   address: "0xCB4A8f862927cCB1fEEa7Cc76ab4cdFb5942De35"
   executes:
-    - MapleStoryEquipSBT
+    - MapleStory Equip SBT
 
 - id: event-store1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: EventStore1 }
+  label: { en: Event Store Executor }
   address: "0x855321229969F5110957c11a7bd9b76AD50723c3"
   executes:
-    - EventStore
+    - Event Store
 
 - id: event-store2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: EventStore2 }
+  label: { en: Event Store Executor }
   address: "0x9336032a2a7f1C6DF1bcd08325DeE3Ac8DE5d4c3"
   executes:
-    - EventStore
+    - Event Store
 
 - id: event-store-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: EventStoreBackoffice1 }
+  label: { en: Event Store Backoffice Executor }
   address: "0x396AfD3029CB70Ddd269DDDd0904CE0DF53D4dae"
   executes:
-    - EventStore
+    - Event Store
 
 - id: event-store-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: EventStoreBackoffice2 }
+  label: { en: Event Store Backoffice Executor }
   address: "0xc14Dc2feb23Ea53ef7ddEBd8B08A1d74213B89af"
   executes:
-    - EventStore
+    - Event Store
 
 - id: fusion1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Fusion1 }
+  label: { en: Fusion Executor }
   address: "0x4ddb0CE172040CA02aC91C02e8e6C0cBF0606cb2"
   executes:
-    - NXPCDistributor
+    - NXPC Distributor
 
 - id: fusion2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Fusion2 }
+  label: { en: Fusion Executor }
   address: "0x18da687E921e668d88FdcadDDFBdc28b103A5D20"
   executes:
-    - NXPCDistributor
+    - NXPC Distributor
 
 - id: fusion3
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Fusion3 }
+  label: { en: Fusion Executor }
   address: "0x9a5732aaa6c97705C8A371056d7b3B57eC8FCBE9"
   executes:
-    - NXPCDistributor
+    - NXPC Distributor
 
 - id: fusion4
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Fusion4 }
+  label: { en: Fusion Executor }
   address: "0x555cF872773845E4378Ebb113A9509425EB8C086"
   executes:
-    - NXPCDistributor
+    - NXPC Distributor
 
 - id: fusion5
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Fusion5 }
+  label: { en: Fusion Executor }
   address: "0x2F3d948483494Fd6e64E1f19630FDA648C1E19Df"
   executes:
-    - NXPCDistributor
+    - NXPC Distributor
 
 - id: fusion-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: FusionBackoffice1 }
+  label: { en: Fusion Backoffice Executor }
   address: "0x5d5af13491919B71e4860c6711d81d19b8213c35"
   executes:
-    - NXPCDistributor
+    - NXPC Distributor
 
 - id: fusion-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: FusionBackoffice2 }
+  label: { en: Fusion Backoffice Executor }
   address: "0xad692A05172FeE117D6c4Dc8e6050b3B5DB3590F"
   executes:
-    - NXPCDistributor
+    - NXPC Distributor
 
 - id: item-issuance1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: ItemIssuance1 }
+  label: { en: Item Issuance Executor }
   address: "0x554BDE345cDcC27Cde3bAb2ca5323719253a204B"
   executes:
-    - ItemIssuance
+    - Item Issuance
 
 - id: item-issuance2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: ItemIssuance2 }
+  label: { en: Item Issuance Executor }
   address: "0xbc97eeae49cc84a82936B42996fE8B909eafC28a"
   executes:
-    - ItemIssuance
+    - Item Issuance
 
 - id: item-issuance-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: ItemIssuanceBackoffice1 }
+  label: { en: Item Issuance Backoffice Executor }
   address: "0x6b98c6211a1967dEd34A5ec6F0C0e6547085ee14"
   executes:
-    - ItemIssuance
+    - Item Issuance
 
 - id: item-issuance-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: ItemIssuanceBackoffice2 }
+  label: { en: Item Issuance Backoffice Executor }
   address: "0x844b0525b3E2987885B8B32eA40128ABeb11B7a6"
   executes:
-    - ItemIssuance
+    - Item Issuance
 
 - id: l1-destination-bridge1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: L1DestinationBridge1 }
+  label: { en: L1 Destination Bridge Executor }
   address: "0xdC4795785A92e548CFb07f955fDfE3f0d3119201"
   executes:
     - Raffle
@@ -1282,7 +1282,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: L1DestinationBridge2 }
+  label: { en: L1 Destination Bridge Executor }
   address: "0x821201DAfeAc1E6539042aF271a8687Df17B5a91"
   executes:
     - Raffle
@@ -1291,25 +1291,25 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: L1DestinationBridgeBackoffice1 }
+  label: { en: L1 Destination Bridge Backoffice Executor }
   address: "0x75dA48ff45D3E120448D61E1dAd1f81a94513442"
   executes:
-    - L1DestinationBridge
+    - L1 Destination Bridge
 
 - id: l1-destination-bridge-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: L1DestinationBridgeBackoffice2 }
+  label: { en: L1 Destination Bridge Backoffice Executor }
   address: "0xe0EA1a1721Be8353F85A2bB7B9Bb9510882C8684"
   executes:
-    - L1DestinationBridge
+    - L1 Destination Bridge
 
 - id: l1-teller1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: L1Teller1 }
+  label: { en: L1 Teller Executor }
   address: "0x3dec20eFe02C897C55A2F656B77a3aF8CA4f7eB0"
   executes:
     - Raffle
@@ -1318,124 +1318,124 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: L1Teller2 }
+  label: { en: L1 Teller Executor }
   address: "0xE89a23a2DB9F517d25008a3F271e78ce6119a5fB"
   executes:
-    - L1DestinationBridge
+    - L1 Destination Bridge
 
 - id: l1-teller3
   type: eoa
   category: ops
   chain: henesys
-  label: { en: L1Teller3 }
+  label: { en: L1 Teller Executor }
   address: "0xa2fa3671E464753B62CeB27220EDbae7E387C79a"
   executes:
-    - L1DestinationBridge
+    - L1 Destination Bridge
 
 - id: l1-teller4
   type: eoa
   category: ops
   chain: henesys
-  label: { en: L1Teller4 }
+  label: { en: L1 Teller Executor }
   address: "0x7Dc992C7A1512b75B30e5aDD9392CBe656B36A16"
   executes:
-    - L1Teller
+    - L1 Teller
 
 - id: l1-teller5
   type: eoa
   category: ops
   chain: henesys
-  label: { en: L1Teller5 }
+  label: { en: L1 Teller Executor }
   address: "0x0400E899f0dc240e1d6d2c0F186B2812C56dF71B"
   executes:
-    - L1Teller
+    - L1 Teller
 
 - id: l1-teller-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: L1TellerBackoffice1 }
+  label: { en: L1 Teller Backoffice Executor }
   address: "0x0e353C2EB3b7dDd33e3DFE259B735E400F7d6ce8"
   executes:
-    - L1Teller
+    - L1 Teller
 
 - id: l1-teller-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: L1TellerBackoffice2 }
+  label: { en: L1 Teller Backoffice Executor }
   address: "0x3C56090b88413ef43bE3d01b2Af54660956Cd616"
   executes:
-    - L1Teller
+    - L1 Teller
 
 - id: maplestory-asset1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MapleStoryAsset1 }
+  label: { en: MapleStory Asset Executor }
   address: "0xcdbb9441e78Cfac334744336A7825e2cfCF9BFE5"
   executes:
-    - MapleStoryAsset
+    - MapleStory Asset
 
 - id: maplestory-asset2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MapleStoryAsset2 }
+  label: { en: MapleStory Asset Executor }
   address: "0x69adb887875AEf836f4316daf0c14123a9DE9fD2"
   executes:
-    - MapleStoryAsset
+    - MapleStory Asset
 
 - id: maplestory-asset3
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MapleStoryAsset3 }
+  label: { en: MapleStory Asset Executor }
   address: "0xc203c5aAD0c2359731BF8821Dc70F1685ddBCb70"
   executes:
-    - MapleStoryAsset
+    - MapleStory Asset
 
 - id: maplestory-asset4
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MapleStoryAsset4 }
+  label: { en: MapleStory Asset Executor }
   address: "0x254E22d8C002a24c1e71390Ebd67993032405AdA"
   executes:
-    - MapleStoryAsset
+    - MapleStory Asset
 
 - id: maplestory-asset5
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MapleStoryAsset5 }
+  label: { en: MapleStory Asset Executor }
   address: "0xea591Cee74A6d7a334Bcd68b97b072cfF71E9C38"
   executes:
-    - MapleStoryAsset
+    - MapleStory Asset
 
 - id: maplestory-asset-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MapleStoryAssetBackoffice1 }
+  label: { en: MapleStory Asset Backoffice Executor }
   address: "0x8a6839dD0719dE84dd9e44c3F285cdBEeBc4BEcc"
   executes:
-    - MapleStoryAsset
+    - MapleStory Asset
 
 - id: maplestory-asset-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MapleStoryAssetBackoffice2 }
+  label: { en: MapleStory Asset Backoffice Executor }
   address: "0x4e11918BC5c55284De6eeA3b4a2Be63c2D2bc8EC"
   executes:
-    - MapleStoryAsset
+    - MapleStory Asset
 
 - id: market1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market1 }
+  label: { en: Market Executor }
   address: "0x49c1808983784953750D0f75c6Db992D1faAB1C8"
   executes:
     - MarketplaceV2
@@ -1444,7 +1444,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market10 }
+  label: { en: Market Executor }
   address: "0x0D6F092B6B9eB0176bFeE52c3a39E140AFD6C9A6"
   executes:
     - MarketplaceV2
@@ -1453,7 +1453,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market11 }
+  label: { en: Market Executor }
   address: "0x5aE5Dc9D61AD463baf168847D517EF2151d15C4a"
   executes:
     - MarketplaceV2
@@ -1462,7 +1462,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market12 }
+  label: { en: Market Executor }
   address: "0x2D4EFfc09830F08DecD3D1F11DCf1c171e524537"
   executes:
     - MarketplaceV2
@@ -1471,7 +1471,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market13 }
+  label: { en: Market Executor }
   address: "0x9412acb972523B19671272e7259ff2f7D880aD7f"
   executes:
     - MarketplaceV2
@@ -1480,7 +1480,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market14 }
+  label: { en: Market Executor }
   address: "0x6E7b0Ec01f46eE8D2596A5e5fDdf2dcD156bC5FB"
   executes:
     - MarketplaceV2
@@ -1489,7 +1489,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market15 }
+  label: { en: Market Executor }
   address: "0xD6606C922d4A430eF1a0d4F195BF4bE9BD47bab3"
   executes:
     - MarketplaceV2
@@ -1498,7 +1498,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market2 }
+  label: { en: Market Executor }
   address: "0x96897017dBe0029C667d0579F221d1ef867C7952"
   executes:
     - MarketplaceV2
@@ -1507,7 +1507,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market3 }
+  label: { en: Market Executor }
   address: "0x990FD750938247216ce1ac73E0Ba379A22838C03"
   executes:
     - MarketplaceV2
@@ -1516,7 +1516,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market4 }
+  label: { en: Market Executor }
   address: "0xa20081A3AaB1c10f7669a065BF291A8AB8D4Ad97"
   executes:
     - MarketplaceV2
@@ -1525,7 +1525,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market5 }
+  label: { en: Market Executor }
   address: "0xf23Bae5450d1f6B77d0B62863993131aC746C3a0"
   executes:
     - MarketplaceV2
@@ -1534,7 +1534,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market6 }
+  label: { en: Market Executor }
   address: "0xC6af5AF31bAf4fb91B9ca52dbf36860Dd5C4238e"
   executes:
     - MarketplaceV2
@@ -1543,7 +1543,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market7 }
+  label: { en: Market Executor }
   address: "0x0F1e0e9cE6B073B76CCC025336e91D33aF1c5BdF"
   executes:
     - MarketplaceV2
@@ -1552,7 +1552,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market8 }
+  label: { en: Market Executor }
   address: "0xf4024b5d403d76b8a037f0da89216f5165746FF7"
   executes:
     - MarketplaceV2
@@ -1561,7 +1561,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Market9 }
+  label: { en: Market Executor }
   address: "0x47900ECf6DF8E6195F04A680aafEf024Ff2Bc859"
   executes:
     - MarketplaceV2
@@ -1570,7 +1570,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MarketBackoffice1 }
+  label: { en: Market Backoffice Executor }
   address: "0xa8dbB09CA1FF80959d72da2A2d13A34811f9377a"
   executes:
     - MarketplaceV2
@@ -1579,7 +1579,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MarketBackoffice2 }
+  label: { en: Market Backoffice Executor }
   address: "0x1261AD53aD65f9fFCf1D002f8a7c8F4362fB5AcA"
   executes:
     - MarketplaceV2
@@ -1588,250 +1588,250 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MSUContentsCommission1 }
+  label: { en: MSU Contents Commission Executor }
   address: "0x4739486Ed7353A17010186cD158B80A445856823"
   executes:
-    - MSUContentsCommission
+    - MSU Contents Commission
 
 - id: msu-contents-commission2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MSUContentsCommission2 }
+  label: { en: MSU Contents Commission Executor }
   address: "0xF19dE3Be257c1B7Fa81d96dE84A6a25915C14807"
   executes:
-    - MSUContentsCommission
+    - MSU Contents Commission
 
 - id: msu-contents-commission3
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MSUContentsCommission3 }
+  label: { en: MSU Contents Commission Executor }
   address: "0x8013c4b54495E5Fd3eCC8f7462bBad0c2A7B49a9"
   executes:
-    - MSUContentsCommission
+    - MSU Contents Commission
 
 - id: msu-contents-commission4
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MSUContentsCommission4 }
+  label: { en: MSU Contents Commission Executor }
   address: "0x82B14A1c76eD6b32be84d30265be6909451FeDEE"
   executes:
-    - MSUContentsCommission
+    - MSU Contents Commission
 
 - id: msu-contents-commission5
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MSUContentsCommission5 }
+  label: { en: MSU Contents Commission Executor }
   address: "0xC08a2878119e6B549D301a015F054AAb22158F54"
   executes:
-    - MSUContentsCommission
+    - MSU Contents Commission
 
 - id: msu-contents-commission-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MSUContentsCommissionBackoffice1 }
+  label: { en: MSU Contents Commission Backoffice Executor }
   address: "0xFD057059B327590B91c19D7eaD551d09DE0C718d"
   executes:
-    - MSUContentsCommission
+    - MSU Contents Commission
 
 - id: multicall-wallet1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet1 }
+  label: { en: Multicall Wallet Executor }
   address: "0x87E77aeAad70caa39F138Ec99Ac54D3Bf63c7638"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet10
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet10 }
+  label: { en: Multicall Wallet Executor }
   address: "0x54f055D4E299919b30BA327f94069A25f899A2B6"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet11
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet11 }
+  label: { en: Multicall Wallet Executor }
   address: "0xC9399e4149D209dae88Fd84bCa4431e3b9B8Bfb6"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet12
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet12 }
+  label: { en: Multicall Wallet Executor }
   address: "0x9a4410c2d9e1cD473318a52A607ACCa5D2211Dbb"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet13
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet13 }
+  label: { en: Multicall Wallet Executor }
   address: "0x010FCE8B3A11E24c8261e826989F4356573601ff"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet14
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet14 }
+  label: { en: Multicall Wallet Executor }
   address: "0x4f41be6a3bC26620F773b20E0d6A0D134F6f2947"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet2 }
+  label: { en: Multicall Wallet Executor }
   address: "0xAfF5A374E412ffb7A2f81E052eD875cC708CE2B5"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet3
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet3 }
+  label: { en: Multicall Wallet Executor }
   address: "0xEC4D5c4126F2711A09ffDF13395Eb676Ba4EBc5D"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet4
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet4 }
+  label: { en: Multicall Wallet Executor }
   address: "0x5F5E0897A7a85E1De38040A581E963B60EAD0640"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet5
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet5 }
+  label: { en: Multicall Wallet Executor }
   address: "0x8b2236faDaC8D7A064F12554126C4193E76945dB"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet6
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet6 }
+  label: { en: Multicall Wallet Executor }
   address: "0xb53a34A880476c8B22D6e4BA847AcC5168c515D3"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet7
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet7 }
+  label: { en: Multicall Wallet Executor }
   address: "0x5D8eF10c0B14d9aaAC370901B744e08Ee5C179fA"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet8
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet8 }
+  label: { en: Multicall Wallet Executor }
   address: "0x76c419EC141a7955400715b578937F12575Bfe07"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet9
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWallet9 }
+  label: { en: Multicall Wallet Executor }
   address: "0xF5236465cBCf6BCF2774Dac88e71D2c345001539"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWalletBackoffice1 }
+  label: { en: Multicall Wallet Backoffice Executor }
   address: "0xBEF5185112D9cd2aB1490b6C0fAc0b44ebCa2232"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multicall-wallet-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MulticallWalletBackoffice2 }
+  label: { en: Multicall Wallet Backoffice Executor }
   address: "0x6D5AadEb11E20708Ef77B7F4c28F979C3a74F32C"
   executes:
-    - MulticallWallet
+    - Multicall Wallet
 
 - id: multisig-contract-deployer
   type: eoa
   category: ops
   chain: henesys
-  label: { en: MultisigContractDeployer }
+  label: { en: Multisig Contract Deployer }
   address: "0xE796035BBFc7fE08471208e040FC6fc2a4102928"
   executes:
-    - AdvisorVestingWallet
-    - BNB Chain ContractOwnerMultisig
-    - C-Chain ContractOwnerMultisig
-    - C-Chain EcosystemBuilderProgram
-    - C-Chain HotNUCTeamVesting
-    - C-Chain HotNXPTeamVesting
-    - C-Chain HotPaymentSettlementWallet
-    - C-Chain MultisigNonRetrievable
+    - Advisor Vesting Wallet
+    - BNB Chain Contract Owner Multisig
+    - C-Chain Contract Owner Multisig
+    - C-Chain Ecosystem Builder Program
+    - C-Chain Hot NUC Team Vesting
+    - C-Chain Hot NXP Team Vesting
+    - C-Chain Hot Payment Settlement Wallet
+    - C-Chain Multisig Non Retrievable
     - C-Chain Treasury
-    - ColdNXPCRecycleVault
-    - CommissionVault
-    - CommunityAirdropWallet
-    - ContractOwnerMultisig
-    - ContributionRewardWallet
-    - DLTIPMGWallet
-    - EcosystemBuilderProgram
-    - EcosystemExchangeOfferingWallet
-    - EcosystemReserveWallet
-    - ExchangeShop
-    - GasSponsorWallet
-    - HotContractOwnerMultisig
-    - HotPlatformFeeWallet
-    - HotRevenueWallet
+    - Cold NXPC Recycle Vault
+    - Commission Vault
+    - Community Airdrop Wallet
+    - Contract Owner Multisig
+    - Contribution Reward Wallet
+    - DLT IPMG Wallet
+    - Ecosystem Builder Program
+    - Ecosystem Exchange Offering Wallet
+    - Ecosystem Reserve Wallet
+    - Exchange Shop
+    - Gas Sponsor Wallet
+    - Hot Contract Owner Multisig
+    - Hot Platform Fee Wallet
+    - Hot Revenue Wallet
     - IPMG
-    - LiquidAllocationWallet
-    - LiquidityProvisionWallet
-    - Monad ContractOwnerMultisig
-    - NFTVault
-    - NUCIPMGWallet
-    - NXPCRecycleVault
-    - PenaltyReserveWallet
-    - PlatformFeeWallet
-    - RevenueWallet
-    - TeamVestingWallet
-    - TrashCan
+    - Liquid Allocation Wallet
+    - Liquidity Provision Wallet
+    - Monad Contract Owner Multisig
+    - NFT Vault
+    - NUC IPMG Wallet
+    - NXPC Recycle Vault
+    - Penalty Reserve Wallet
+    - Platform Fee Wallet
+    - Revenue Wallet
+    - Team Vesting Wallet
+    - Trash Can
     - Treasury
-    - WarpFeeWallet
+    - Warp Fee Wallet
 
 - id: neso1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: NESO1 }
+  label: { en: NESO Executor }
   address: "0x9B7A126e3a5314C512A36d365C28b8eB216183c1"
   executes:
     - NextMeso
@@ -1840,7 +1840,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: NESO2 }
+  label: { en: NESO Executor }
   address: "0x3465249e176A697355d7440A8Bf99b04e70e3735"
   executes:
     - NextMeso
@@ -1849,7 +1849,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: NESOBackoffice1 }
+  label: { en: NESO Backoffice Executor }
   address: "0xa09e8017Ca825D811E0D606618c95468bE17BbF7"
   executes:
     - NextMeso
@@ -1858,7 +1858,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: NESOBackoffice2 }
+  label: { en: NESO Backoffice Executor }
   address: "0x8A7811b428FF020CAAeDC8A34E1FdE43b9056067"
   executes:
     - NextMeso
@@ -1867,160 +1867,160 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: NextForwarder1 }
+  label: { en: Next Forwarder Executor }
   address: "0x60be3aF60F8CA3FDa94ad47c8Da1339d582ed5E6"
   executes:
-    - NextForwarder
+    - Next Forwarder
 
 - id: next-forwarder2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: NextForwarder2 }
+  label: { en: Next Forwarder Executor }
   address: "0x333DF0D3c8Fb6bF35332cf9d7107d7F6213de23a"
   executes:
-    - NextForwarder
+    - Next Forwarder
 
 - id: next-forwarder3
   type: eoa
   category: ops
   chain: henesys
-  label: { en: NextForwarder3 }
+  label: { en: Next Forwarder Executor }
   address: "0x0299CC6794B42D1cEb41389845369DDc2FB1621a"
   executes:
-    - NextForwarder
+    - Next Forwarder
 
 - id: next-forwarder4
   type: eoa
   category: ops
   chain: henesys
-  label: { en: NextForwarder4 }
+  label: { en: Next Forwarder Executor }
   address: "0x041fd4De1e9A583395b57df054A975effc6D94D8"
   executes:
-    - NextForwarder
+    - Next Forwarder
 
 - id: next-forwarder5
   type: eoa
   category: ops
   chain: henesys
-  label: { en: NextForwarder5 }
+  label: { en: Next Forwarder Executor }
   address: "0x12E826aD25A05F7bE413a767081B742971eb51a7"
   executes:
-    - NextForwarder
+    - Next Forwarder
 
 - id: next-forwarder-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: NextForwarderBackoffice1 }
+  label: { en: Next Forwarder Backoffice Executor }
   address: "0x2Abd0DFeD13c7bDC93A3f28C71c3456Cf201D8A3"
   executes:
-    - NextForwarder
+    - Next Forwarder
 
 - id: next-forwarder-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: NextForwarderBackoffice2 }
+  label: { en: Next Forwarder Backoffice Executor }
   address: "0x225be83bbA4493b9c09034740429a207D3c13080"
   executes:
-    - NextForwarder
+    - Next Forwarder
 
 - id: order-book1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: OrderBook1 }
+  label: { en: Order Book Executor }
   address: "0xdEDF28d821fb66C1D186C229Ee049656e65b2e76"
   executes:
-    - OrderBook
+    - Order Book
 
 - id: order-book2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: OrderBook2 }
+  label: { en: Order Book Executor }
   address: "0x13d8Da29406b85628DA957c61fA5873Fe1936725"
   executes:
-    - OrderBook
+    - Order Book
 
 - id: order-book3
   type: eoa
   category: ops
   chain: henesys
-  label: { en: OrderBook3 }
+  label: { en: Order Book Executor }
   address: "0xd2C1f4668FFCc393d7Ea62951bd0B5A84d80AB9a"
   executes:
-    - OrderBook
+    - Order Book
 
 - id: order-book4
   type: eoa
   category: ops
   chain: henesys
-  label: { en: OrderBook4 }
+  label: { en: Order Book Executor }
   address: "0xE6A96dCb910424A1CE04B781291D67104B40ED2f"
   executes:
-    - OrderBook
+    - Order Book
 
 - id: order-book5
   type: eoa
   category: ops
   chain: henesys
-  label: { en: OrderBook5 }
+  label: { en: Order Book Executor }
   address: "0x3D807a7C02dFcB7179B5A865ebF9C722786173F0"
   executes:
-    - OrderBook
+    - Order Book
 
 - id: order-book-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: OrderBookBackoffice1 }
+  label: { en: Order Book Backoffice Executor }
   address: "0xAe94974a868BcCBd8be69912243aCa67C88BF2ba"
   executes:
-    - OrderBook
+    - Order Book
 
 - id: order-book-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: OrderBookBackoffice2 }
+  label: { en: Order Book Backoffice Executor }
   address: "0xb2A441779676d9D824027C807DB7B78b155A012B"
   executes:
-    - OrderBook
+    - Order Book
 
 - id: raffle1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Raffle1 }
+  label: { en: Raffle Executor }
   address: "0x8c26505d80501b9d3a114Fb31AC2F06caddE2712"
   executes:
-    - L1Teller
+    - L1 Teller
 
 - id: raffle2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Raffle2 }
+  label: { en: Raffle Executor }
   address: "0xB99c77Fa2C9c84beE6AECa2fCCf50a91e45fedD9"
   executes:
-    - L1Teller
+    - L1 Teller
 
 - id: raffle3
   type: eoa
   category: ops
   chain: henesys
-  label: { en: Raffle3 }
+  label: { en: Raffle Executor }
   address: "0x152bB8AeA72e57184FB295810e123d620A39CBd5"
   executes:
-    - L1Teller
+    - L1 Teller
 
 - id: raffle-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: RaffleBackoffice1 }
+  label: { en: Raffle Backoffice Executor }
   address: "0x23fCCceba65E07c7fd5c4Df0459485D37ADa02D3"
   executes:
     - Raffle
@@ -2029,7 +2029,7 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: RaffleBackoffice2 }
+  label: { en: Raffle Backoffice Executor }
   address: "0x96b07C48dD22E40a352dD9CC8dD6a951D1E13051"
   executes:
     - Raffle
@@ -2038,205 +2038,205 @@
   type: eoa
   category: ops
   chain: henesys
-  label: { en: RSG1 }
+  label: { en: RSG Executor }
   address: "0x8523DA6E4294F731F21cd60D570EeE51f2BAb65d"
   executes:
-    - RandomSeedGenerator
+    - Random Seed Generator
 
 - id: rsg2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: RSG2 }
+  label: { en: RSG Executor }
   address: "0x96326251cD76bDf34A1bE8BEdCe6E09d8598eC21"
   executes:
-    - RandomSeedGenerator
+    - Random Seed Generator
 
 - id: rsg-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: RSGBackoffice1 }
+  label: { en: RSG Backoffice Executor }
   address: "0xA74Ac9eAbdd7CB1Af9AFAfD7dC6C54741f91446f"
   executes:
-    - RandomSeedGenerator
+    - Random Seed Generator
 
 - id: rsg-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: RSGBackoffice2 }
+  label: { en: RSG Backoffice Executor }
   address: "0x2299F0B4C6311B418feb3A4ad30CcDFEcC50a0Eb"
   executes:
-    - RandomSeedGenerator
+    - Random Seed Generator
 
 - id: teleporter-messenger1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: TeleporterMessenger1 }
+  label: { en: Teleporter Messenger Executor }
   address: "0xde295885A1560C543139BE9026064DE2fa654551"
   executes:
-    - TeleporterMessenger
+    - Teleporter Messenger
 
 - id: teleporter-messenger2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: TeleporterMessenger2 }
+  label: { en: Teleporter Messenger Executor }
   address: "0x623f468151A9032Bc1797ef3F58aF6bbAEA7Aec1"
   executes:
-    - TeleporterMessenger
+    - Teleporter Messenger
 
 - id: vrf1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: VRF1 }
+  label: { en: VRF Executor }
   address: "0x8CaEDC8f397c3043BDC12051AFEb7055e81B0bDD"
   executes:
-    - VRFManager
+    - VRF Manager
 
 - id: vrf2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: VRF2 }
+  label: { en: VRF Executor }
   address: "0x9De75305Bc416EBDb3C8aEa7E38615f036c7d26f"
   executes:
-    - VRFManager
+    - VRF Manager
 
 - id: vrf-backoffice1
   type: eoa
   category: ops
   chain: henesys
-  label: { en: VRFBackoffice1 }
+  label: { en: VRF Backoffice Executor }
   address: "0x63a7eeAC7fDa6356e282d5B7fAFbA250c5680532"
   executes:
-    - VRFManager
+    - VRF Manager
 
 - id: vrf-backoffice2
   type: eoa
   category: ops
   chain: henesys
-  label: { en: VRFBackoffice2 }
+  label: { en: VRF Backoffice Executor }
   address: "0xcE067d24Ea883D205b27a1944fE8313E529EcC9f"
   executes:
-    - VRFManager
+    - VRF Manager
 
 - id: c-multicall-wallet-backoffice1
   type: eoa
   category: ops
   chain: c-chain
-  label: { en: C-Chain MulticallWalletBackoffice1 }
+  label: { en: C-Chain Multicall Wallet Backoffice Executor }
   address: "0x263ED1c0098C2eaCe8a5b28125dF0e35421510C0"
   executes:
-    - C-Chain MulticallWallet
+    - C-Chain Multicall Wallet
 
 - id: c-multicall-wallet-backoffice2
   type: eoa
   category: ops
   chain: c-chain
-  label: { en: C-Chain MulticallWalletBackoffice2 }
+  label: { en: C-Chain Multicall Wallet Backoffice Executor }
   address: "0x096BB3CB3eC074bA3700e73D0339AB50b2E69A91"
   executes:
-    - C-Chain MulticallWallet
+    - C-Chain Multicall Wallet
 
 - id: c-nick-name1
   type: eoa
   category: ops
   chain: c-chain
-  label: { en: C-Chain NickName1 }
+  label: { en: C-Chain Nickname Executor }
   address: "0x2BA7840E9f25bF604881c5865CC5d688F747Cd5e"
   executes:
-    - C-Chain NicknameNFT
+    - C-Chain Nickname NFT
 
 - id: c-nick-name2
   type: eoa
   category: ops
   chain: c-chain
-  label: { en: C-Chain NickName2 }
+  label: { en: C-Chain Nickname Executor }
   address: "0xaF417dE45d8424621E44a7FdfFde9EC4Ba8895db"
   executes:
-    - C-Chain NicknameNFT
+    - C-Chain Nickname NFT
 
 - id: c-nick-name3
   type: eoa
   category: ops
   chain: c-chain
-  label: { en: C-Chain NickName3 }
+  label: { en: C-Chain Nickname Executor }
   address: "0xc5Cb7dA4978883734465681256104C4423BA93f8"
   executes:
-    - C-Chain NicknameNFT
+    - C-Chain Nickname NFT
 
 - id: c-nick-name4
   type: eoa
   category: ops
   chain: c-chain
-  label: { en: C-Chain NickName4 }
+  label: { en: C-Chain Nickname Executor }
   address: "0xbe4F8E58eA16046887C4518C82C0c59d3590EbCC"
   executes:
-    - C-Chain NicknameNFT
+    - C-Chain Nickname NFT
 
 - id: c-nick-name5
   type: eoa
   category: ops
   chain: c-chain
-  label: { en: C-Chain NickName5 }
+  label: { en: C-Chain Nickname Executor }
   address: "0x2471BC356E8F25Ddfa999808ADE509b46d88c877"
   executes:
-    - C-Chain NicknameNFT
+    - C-Chain Nickname NFT
 
 - id: c-teleporter-messenger-backoffice1
   type: eoa
   category: ops
   chain: c-chain
-  label: { en: C-Chain TeleporterMessengerBackoffice1 }
+  label: { en: C-Chain Teleporter Messenger Backoffice Executor }
   address: "0x866026589dB39E6A31177164a3d793a2843fbdd5"
   executes:
-    - C-Chain TeleporterMessenger
+    - C-Chain Teleporter Messenger
 
 - id: c-teleporter-messenger-backoffice2
   type: eoa
   category: ops
   chain: c-chain
-  label: { en: C-Chain TeleporterMessengerBackoffice2 }
+  label: { en: C-Chain Teleporter Messenger Backoffice Executor }
   address: "0x9e310B82C91518E857eE460A6a34752c54B5D35E"
   executes:
-    - C-Chain TeleporterMessenger
+    - C-Chain Teleporter Messenger
 
 - id: c-upbit-airdrop-backoffice1
   type: eoa
   category: ops
   chain: c-chain
-  label: { en: C-Chain UpbitAirdropBackoffice1 }
+  label: { en: C-Chain Upbit Airdrop Backoffice Executor }
   address: "0x368d08eA91550263Fc02f5864899CD5BB7413DC4"
   executes:
-    - C-Chain AirdropMulticallWallet
+    - C-Chain Airdrop Multicall Wallet
 
 - id: nxpc-airdrop1
   type: eoa
   category: ops
   chain: c-chain
-  label: { en: NXPCAirdrop1 }
+  label: { en: NXPC Airdrop Executor }
   address: "0x48C9BF81d46427ed9cAe749155291cD9319d8CFe"
   executes:
-    - C-Chain NXPCClaim
+    - C-Chain NXPC Claim
 
 - id: nxpc-airdrop2
   type: eoa
   category: ops
   chain: c-chain
-  label: { en: NXPCAirdrop2 }
+  label: { en: NXPC Airdrop Executor }
   address: "0xb80dE4A8511A4772B921fC51d6ba39Ae02a9710E"
   executes:
-    - C-Chain NXPCClaim
+    - C-Chain NXPC Claim
 
 - id: nxpc-airdrop-backoffice1
   type: eoa
   category: ops
   chain: c-chain
-  label: { en: NXPCAirdropBackoffice1 }
+  label: { en: NXPC Airdrop Backoffice Executor }
   address: "0x18E6cCb0A30fe2A31118478f446C57723Dc09870"
   executes:
-    - C-Chain NXPCClaim
+    - C-Chain NXPC Claim
