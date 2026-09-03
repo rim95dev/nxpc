@@ -401,13 +401,20 @@ const foldJson = JSON.stringify(FOLD_CONFIG);
 
   <section class="band" id="bridge">
     <div class="wrap">
-      <div class="sec-head"><h2>{t.section.bridge}</h2></div>
+      <div class="sec-head sec-head-row">
+        <h2>{t.section.bridge}</h2>
+        <a class="sec-cta" href={t.bridge.action.href} target="_blank" rel="noopener">
+          <img src={`${base}/swapnwarp.png`} alt="" width="22" height="22" decoding="async" />
+          <span>{t.bridge.action.label}</span>
+          <svg class="sec-cta-out" viewBox="0 0 12 12" aria-hidden="true"><path d="M3.2 8.8 8.8 3.2M4.4 3.2h4.4v4.4" /></svg>
+        </a>
+      </div>
       <div class="bridge-grid">
         <div class="bridge-main">
           <div class="tile-k">{t.bridge.current}</div>
           <div class="bridge-num"><span class="mono" data-live="bridged">{LIVE.bridged}</span> <span class="hero-unit">{t.hero.unit}</span></div>
           <div class="tile-s mono"><span data-live="bridged.pct">{LIVE['bridged.pct']}</span> {t.bridge.ofCirculating}</div>
-          <div class="spark" set:html={sparkline(lastDays(data.series.points, 180).map((r) => r.bridged), 'var(--c-bridge)', t.bridge.spark)} />
+          <div class="spark" set:html={sparkline(lastDays(data.series.points, 180).map((r) => ({ t: r.t, v: r.bridged })), 'var(--c-bridge)', t.bridge.spark)} />
           <div class="spark-cap">{t.bridge.spark}</div>
         </div>
 

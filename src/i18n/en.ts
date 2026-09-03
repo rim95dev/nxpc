@@ -166,13 +166,16 @@ export const en = {
     totalIssuedLine: 'Max supply',
     gapLabel: 'Non-circulating',
     clamped: '<1%, enlarged',
-    handoverRight: 'daily →',
-    handoverLeft: '← daily',
+    handoverRight: 'collected →',
+    handoverLeft: '← collected',
     legendCirculating: 'Circulating',
     legendCap: 'Max supply',
     legendGap: 'Non-circulating',
-    uploaded: 'Uploaded',
-    daily: 'Daily',
+    /* The two halves of the line differ by where the point came from, not how often
+       it was taken — both sides are one point a day. Dashed is reconstructed from
+       archive reads, solid is what the cron measured on the day. */
+    uploaded: 'Backfilled',
+    daily: 'Collected',
     days: 'd',
     handoverAt: 'handover',
     gapWarn: 'missing days',
@@ -190,6 +193,8 @@ export const en = {
     l1Sub: 'native gas token',
     cchain: 'Avalanche C-Chain',
     cchainSub: 'C_NXPC ERC-20 · 18',
+    /* The section reports how much has crossed. This is where a reader crosses. */
+    action: { label: 'Swap & Warp', href: 'https://msu.io/swapnwarp/warp' },
   },
 
   table: {
