@@ -73,12 +73,13 @@ the legend and the donut all use the same `data-*` contract (`data-label`,
 is not used: it is slow and cannot be styled. Segments are `<button>`s, so they
 are reachable by keyboard.
 
-**Range chips select by date, not by point count.** `slice(-30)` meant thirty
-days while the series was daily; once the backfill filled it in weekly, the same
-code returned thirty *weeks* and 90D, 1Y and All drew the same picture.
-`src/lib/window.ts` cuts on timestamps instead, and it has no imports on purpose
-— pulling in `series.ts` would drag zod, yaml and `history.csv` into the client
-bundle.
+**Time is the axis, everywhere.** Range chips cut by date and not by point
+count: `slice(-30)` is thirty days only while the spacing is exactly one point a
+day, and one collection run taken by hand or one cron that never fired breaks
+that. `src/lib/window.ts` cuts on timestamps instead, and it has no imports on
+purpose — pulling in `series.ts` would drag zod, yaml and `history.csv` into the
+client bundle. `sparkline()` places points the same way, for the same reason: on
+an index axis a two-day step draws as wide as a week.
 
 **Theme transitions.** `data-theme-ready` is stamped after the first paint and
 transitions start from there; enabling them earlier makes the initial render

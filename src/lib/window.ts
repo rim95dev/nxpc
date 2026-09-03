@@ -1,10 +1,11 @@
 /**
  * The «last N days» window over a time series.
  *
- * Do not cut by point count. It used to be one point per day, so `slice(-30)` was
- * exactly 30 days; once the backfill started accumulating weekly, the same code cut
- * 30 **weeks**. That is also why 90 days, 1 year and all-time all ended up drawing
- * the same picture.
+ * Do not cut by point count. `slice(-30)` is 30 days only while the series holds
+ * exactly one point per day; the moment the spacing changes — a collection run made
+ * by hand, a cron that never fired, a range filled in at a different interval — the
+ * same code cuts a different amount of time and says nothing about it. That is how
+ * 90 days, 1 year and all-time once ended up drawing the same picture.
  *
  * The server (first render) and the client (chip switching) must use the same
  * function, or the graph jumps to a different range the moment a chip is pressed.

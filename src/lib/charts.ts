@@ -498,19 +498,37 @@ export function areaChart(rows: SeriesPoint[], o: ChartOpts): string {
 /* ------------------------------------------------------------------ *
  * Sparkline
  * ------------------------------------------------------------------ */
-export function sparkline(values: number[], color: string, label = 'sparkline'): string {
+/** One point of a sparkline: when it was measured, and what was measured. */
+export interface SparkPoint {
+  t: number;
+  v: number;
+}
+
+/**
+ * The x axis is time, not the row index — the same rule the trend chart follows.
+ *
+ * Spacing a series evenly by index only tells the truth while the points are evenly
+ * spaced in time, and a series that mixes cadences (a backfilled grid, a cron that
+ * misses a run, a snapshot taken by hand) is not. Drawn by index, a two-day step
+ * takes the same width as a week and the recent end of the graph silently stretches.
+ */
+export function sparkline(points: SparkPoint[], color: string, label = 'sparkline'): string {
   const W = 320, H = 56;
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+  const vs = points.map((p) => p.v);
+  const min = Math.min(...vs);
+  const max = Math.max(...vs);
   const span = max - min || 1;
-  const x = (i: number) => (i / (values.length - 1)) * W;
+  const t0 = points[0]?.t ?? 0;
+  const dt = (points[points.length - 1]?.t ?? t0) - t0 || 1;
+  const x = (t: number) => ((t - t0) / dt) * W;
   const y = (v: number) => H - 6 - ((v - min) / span) * (H - 14);
-  const d = values.map((v, i) => `${i ? 'L' : 'M'}${x(i)} ${y(v)}`).join(' ');
+  const d = points.map((p, i) => `${i ? 'L' : 'M'}${x(p.t)} ${y(p.v)}`).join(' ');
+  const last = points[points.length - 1]!;
   return (
     open(W, H, 'spark', label) +
     `<path d="${d} L ${W} ${H} L 0 ${H} Z" fill="${color}" opacity="0.15"/>` +
     `<path d="${d}" fill="none" stroke="${color}" stroke-width="1.75"/>` +
-    `<circle cx="${x(values.length - 1)}" cy="${y(values[values.length - 1]!)}" r="3" fill="${color}" stroke="var(--canvas)" stroke-width="2"/>` +
+    `<circle cx="${x(last.t)}" cy="${y(last.v)}" r="3" fill="${color}" stroke="var(--canvas)" stroke-width="2"/>` +
     `</svg>`
   );
 }

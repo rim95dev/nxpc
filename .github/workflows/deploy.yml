@@ -5,16 +5,14 @@ on:
     branches: [main]
 
   schedule:
-    # Every Thursday 00:00 UTC — adds one point to the time series.
-    # Why Thursday: the grid the backfill produced (2025-05-15 ~ 2026-08-27) is on
-    # Thursdays, so it has to continue on the same weekday for the spacing to stay even.
-    - cron: '0 0 * * 4'
-    # Daily — refreshes the built-in figures. No snapshot is recorded.
-    # The browser reads balances live on load, so this is not what keeps the numbers
-    # current; it refreshes the fallback that curl and a JavaScript-less reader get.
-    # Daily is enough for that, and every extra run is another Pages deployment.
-    # Minute 20, not 0: on-the-hour schedules queue behind everyone else's, and the
-    # weekly snapshot run already owns 00:00.
+    # Daily 03:20 UTC — records one point in the time series, then rebuilds and deploys.
+    # One point per day is the grid the backfill produced, and a series has to keep
+    # the spacing it was built on: the charts place points by date, so a run that is
+    # skipped leaves a real gap rather than a shorter step.
+    # The rebuild also refreshes the built-in figures. That is not what keeps the
+    # numbers current — the browser reads balances live on load — it refreshes the
+    # fallback that curl and a JavaScript-less reader get.
+    # Minute 20, not 0: on-the-hour schedules queue behind everyone else's.
     - cron: '20 3 * * *'
 
   workflow_dispatch:
@@ -55,12 +53,13 @@ jobs:
       - name: Audit archive
         run: npm run collect -- --audit
 
-      # A time series point is added once a week (Thursday) only. The daily cron skips this.
+      # One point per scheduled run. A push must not add one: pushes come in bursts,
+      # and a series whose spacing follows commit activity is not a time series.
       # If validation catches something it writes nothing and fails, so a strange number
       # never gets into the archive quietly.
       - name: Collect snapshot
         if: >-
-          github.event.schedule == '0 0 * * 4' ||
+          github.event_name == 'schedule' ||
           (github.event_name == 'workflow_dispatch' && inputs.collect)
         run: npm run collect
 

@@ -92,12 +92,14 @@ Verified against `eth_getBalance` at a pinned block: identical.
 | Range | Source | Written by |
 |---|---|---|
 | Past | `src/data/history.csv` | `scripts/backfill.mjs`, run by hand |
-| Present | Weekly cron, Thursday 00:00 UTC | GitHub Actions |
+| Present | Daily cron, 03:20 UTC | GitHub Actions |
 | Future | `src/data/snapshots/*.json` | the same cron |
 
-Only the weekly run adds a point. The three-hourly run rebuilds the page and
-stores nothing — collecting eight points a day would bury the trend in noise
-without telling anyone anything the weekly grid does not.
+One scheduled run, one point. A push rebuilds without recording anything:
+pushes arrive in bursts, and a series whose spacing follows commit activity is
+not a time series. Reading more often than once a day would not add resolution
+either — the balances that move the figure are settled by ordinary block
+production, not by the hour.
 
 **Both sources store inputs and derive circulating supply.** Letting a file
 state circulating supply directly allows it to disagree with the equation at the

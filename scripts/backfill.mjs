@@ -10,7 +10,7 @@
  *
  *   --from=2025-05-15   start date (default 2025-05-15)
  *   --to=YYYY-MM-DD     end date (default: yesterday UTC)
- *   --every=7           interval in days. Default 7
+ *   --every=1           interval in days. Default 1
  *   --out=path          default src/data/history.csv
  *   --dry-run           print the table only, write no file
  *   --limit=N           only the first N (for trial runs)
@@ -45,7 +45,7 @@
  * 99.7% or better. Removing those entries takes the early rows back to 24.5%.
  */
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import { createServer } from 'vite';
 
 const vite = await createServer({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
@@ -61,8 +61,11 @@ const flag = (k) => process.argv.includes(`--${k}`);
 
 const FROM = arg('from', '2025-05-15');
 const TO = arg('to', new Date(Date.now() - 86_400_000).toISOString().slice(0, 10));
-const EVERY = Number(arg('every', '7'));
-const OUT = join(process.cwd(), arg('out', 'src/data/history.csv'));
+const EVERY = Number(arg('every', '1'));
+/* join() would glue an absolute path onto the cwd and write somewhere that does not
+   exist — which the run only discovers after spending its RPC budget. */
+const outArg = arg('out', 'src/data/history.csv');
+const OUT = isAbsolute(outArg) ? outArg : join(process.cwd(), outArg);
 const DRY = flag('dry-run');
 const LIMIT = Number(arg('limit', '0'));
 const MIN_COV = Number(arg('min-coverage', '98'));
@@ -75,15 +78,21 @@ async function rpc(batch) {
   const out = [];
   for (let i = 0; i < batch.length; i += MAX_RPC_BATCH) {
     const part = batch.slice(i, i + MAX_RPC_BATCH).map((b, k) => ({ jsonrpc: '2.0', id: i + k, ...b }));
-    const res = await fetch(RPC_URL, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(part),
-    });
-    const text = await res.text();
+    /* The endpoint rate-limits, and it answers with plain text rather than a status
+       the fetch would reject. A daily backfill is thousands of round trips, so one
+       refusal has to cost a pause rather than the whole run. */
     let json;
-    try { json = JSON.parse(text); } catch {
-      throw new Error(`RPC response is not JSON (${res.status}): ${text.slice(0, 120)}`);
+    for (let attempt = 0; ; attempt++) {
+      const res = await fetch(RPC_URL, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(part),
+      });
+      const text = await res.text();
+      try { json = JSON.parse(text); break; } catch {
+        if (attempt === 5) throw new Error(`RPC response is not JSON (${res.status}): ${text.slice(0, 120)}`);
+        await new Promise((r) => setTimeout(r, 700 * 2 ** attempt));
+      }
     }
     if (!Array.isArray(json)) throw new Error(`Batch response is not an array: ${JSON.stringify(json).slice(0, 120)}`);
     out.push(...json.sort((a, b) => a.id - b.id));
@@ -94,23 +103,39 @@ async function rpc(batch) {
 
 const hex = (n) => `0x${n.toString(16)}`;
 
-async function blockTs(n) {
-  const [r] = await rpc([{ method: 'eth_getBlockByNumber', params: [hex(n), false] }]);
-  return r.result ? Number(r.result.timestamp) : null;
-}
-
 /**
  * The last block before 00:00 UTC on that date.
- * Block intervals are not uniform (the early range is far slower), so an arithmetic estimate misses badly.
+ *
+ * Block intervals are not uniform (the early range is far slower), so an arithmetic
+ * estimate misses badly and the search has to be a real one. It probes MAX_RPC_BATCH
+ * heights per round rather than one: the RPC charges by round trip, not by entry, so
+ * a ten-way split costs what a bisection costs and closes the range eleven times
+ * faster. At daily resolution that is the difference between a twenty-minute backfill
+ * and an hour of one.
  */
 async function blockAt(dateStr, lo, hi) {
   const target = Math.floor(Date.parse(`${dateStr}T00:00:00Z`) / 1000);
   let best = null;
   while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    const ts = await blockTs(mid);
-    if (ts === null) { hi = mid - 1; continue; }
-    if (ts <= target) { best = { n: mid, ts }; lo = mid + 1; } else hi = mid - 1;
+    const span = hi - lo;
+    const k = Math.max(1, Math.min(MAX_RPC_BATCH, span + 1));
+    const probes = [...new Set(
+      Array.from({ length: k }, (_, i) => lo + Math.round((span * (i + 1)) / (k + 1))),
+    )];
+    const res = await rpc(probes.map((n) => ({ method: 'eth_getBlockByNumber', params: [hex(n), false] })));
+
+    /* Timestamps ascend with height, so the probes do too: everything up to the first
+       miss is below the target and everything from it is above. A height past the tip
+       answers null, which counts as a miss. */
+    let hitAt = -1;
+    for (let i = 0; i < probes.length; i++) {
+      const ts = res[i].result ? Number(res[i].result.timestamp) : null;
+      if (ts === null || ts > target) break;
+      best = { n: probes[i], ts };
+      hitAt = i;
+    }
+    if (hitAt === probes.length - 1) lo = probes[hitAt] + 1;
+    else hi = probes[hitAt + 1] - 1;
   }
   return best;
 }

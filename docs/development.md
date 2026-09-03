@@ -95,13 +95,12 @@ export const LANGS: Lang[] = ['en'];   // add a locale here and it builds
 
 ## Deployment
 
-`.github/workflows/deploy.yml` — on push, on two crons, and on manual dispatch.
+`.github/workflows/deploy.yml` — on push, on one daily cron, and on manual dispatch.
 
 | Trigger | Effect |
 |---|---|
 | push to `main` | rebuild and deploy |
-| `0 0 * * 4` (Thursday) | add a point to the series, then rebuild |
-| `20 3 * * *` (daily) | rebuild only — refreshes the fallback the live read sits on |
+| `20 3 * * *` (daily) | add a point to the series, then rebuild |
 | manual dispatch | rebuild, with snapshot collection as an input |
 
 **The rebuild is not what keeps the figures current** — the browser reads
@@ -116,11 +115,12 @@ older than 26 hours with no live read to stand in front of it. A threshold
 shorter than the cron would mark the page stale for most of every cycle and mean
 nothing.
 
-The cron runs at minute 20: schedules on the hour queue behind everyone
-else's, and 00:00 already belongs to the weekly snapshot run.
+The cron runs at minute 20: schedules on the hour queue behind everyone else's.
 
-Thursday is not arbitrary: the backfilled grid runs on Thursdays, so continuing
-on the same weekday keeps the spacing even.
+Daily is not arbitrary either — it is the grid `backfill.mjs` produced. The
+charts place points by date, so a run that never fires leaves a real gap in the
+line rather than a shorter step, which is the honest way for a missed collection
+to show up.
 
 Set the repository's **Settings → Pages → Source to `GitHub Actions`** — not the
 branch-based mode.

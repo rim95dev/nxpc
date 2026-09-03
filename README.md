@@ -33,7 +33,7 @@ This page is the arithmetic, in public:
 2. **A number you can re-derive.** `circulating = max supply − burned −
    non-circulating`, with every term on screen and every address one click from
    a block explorer.
-3. **A history.** Weekly points going back to launch, so the figure can be read
+3. **A history.** A point a day going back to launch, so the figure can be read
    as a trend rather than a snapshot.
 
 ## What it shows
@@ -90,10 +90,10 @@ independently.
 |---|---|
 | The headline figures and the composition | Live, on every visit |
 | The built-in figures behind them | Rebuilt daily |
-| A new point on the trend | Added weekly, on Thursdays |
-| Everything before that | Reconstructed from archive reads, weekly from 2025-05-15 |
+| A new point on the trend | Added daily |
+| Everything before that | Reconstructed from archive reads, daily from 2025-05-15 |
 
-The trend chart stays as built — it is a weekly series, and a live point on the
+The trend chart stays as built — it is a daily series, and a live point on the
 end would only make the last segment twitch. The page also compares the block it
 was built at against the chain head and marks itself **STALE** when it has fallen
 behind, so a stopped job shows up on the page instead of quietly serving old
