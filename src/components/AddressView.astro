@@ -375,6 +375,37 @@ const tiles = [
     return { per, total };
   };
 
+  /* ---------- Counting figures ----------
+     A toggle can take «total held» from 861M to 141M. Swapping the text puts a
+     different number in the same place with nothing connecting them; counting
+     through shows that one became the other, and gives the eye the same half-second
+     the bar takes to resize.
+
+     The value being counted is kept on the element, because the rendered text is
+     formatted — «735M» does not parse back into a number to count from. */
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const running = new WeakMap<HTMLElement, number>();
+
+  function countTo(el: HTMLElement | null, to: number, fmt: (n: number) => string) {
+    if (!el) return;
+    const prev = el.dataset.v;
+    el.dataset.v = String(to);
+    // Nothing to count from on the first paint, and nothing to count when it did not move.
+    const from = prev === undefined ? to : Number(prev);
+    cancelAnimationFrame(running.get(el) ?? 0);
+    if (reduced.matches || from === to) { el.textContent = fmt(to); return; }
+
+    const t0 = performance.now();
+    const DUR = 560;
+    const ease = (u: number) => 1 - (1 - u) ** 3;
+    const step = (now: number) => {
+      const u = Math.min(1, (now - t0) / DUR);
+      el.textContent = fmt(from + (to - from) * ease(u));
+      if (u < 1) running.set(el, requestAnimationFrame(step));
+    };
+    running.set(el, requestAnimationFrame(step));
+  }
+
   function paintBar(rows: HTMLTableRowElement[]) {
     if (!bar) return;
     const { per, total } = totalsOf(rows);
@@ -398,8 +429,9 @@ const tiles = [
       li.dataset.value = F.full(v);
       li.dataset.pct = total > 0 ? F.pct(v / total) : '—';
       li.dataset.sub = counts[i] ?? '';
-      const val = li.querySelector('.lg-val'); if (val) val.textContent = F.compact(v);
-      const pct = li.querySelector('.lg-pct'); if (pct) pct.textContent = total > 0 ? F.pct(v / total) : '—';
+      countTo(li.querySelector<HTMLElement>('.lg-val'), v, (n) => F.compact(n));
+      countTo(li.querySelector<HTMLElement>('.lg-pct'), total > 0 ? (v / total) * 100 : 0,
+        (n) => (total > 0 ? F.pct(n / 100) : '—'));
     });
 
   }
@@ -410,11 +442,10 @@ const tiles = [
     const { total } = totalsOf(visible);
     const ct = visible.filter((tr) => tr.dataset.type === 'contract').length;
     const tiles = document.querySelectorAll<HTMLElement>('.tile-v');
-    const set = (i: number, v: string) => { const el = tiles[i]; if (el) el.textContent = v; };
-    set(0, F.full(total));
-    set(1, String(visible.length));
-    set(2, String(ct));
-    set(3, String(visible.length - ct));
+    countTo(tiles[0] ?? null, total, (n) => F.full(n));
+    countTo(tiles[1] ?? null, visible.length, (n) => String(Math.round(n)));
+    countTo(tiles[2] ?? null, ct, (n) => String(Math.round(n)));
+    countTo(tiles[3] ?? null, visible.length - ct, (n) => String(Math.round(n)));
   }
 
   function apply() {
